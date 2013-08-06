@@ -29,13 +29,10 @@ POSSIBILITY OF SUCH DAMAGE.
 """
 
 import os
-import platform
-import sys
 
 String = (str, unicode)
 native_listdir = os.listdir
 
-IS_WIN = platform.platform() == 'Windows'
 SEP = '/'
 
 class Path(unicode):
@@ -297,6 +294,9 @@ class Path(unicode):
         end = end or len(self)
         return (self._path + self._filename).endswith(new_suffix, start, end)
 
+    def exists(self):
+        return os.path.exists(self)
+
     def find(sub, start=None, end=None):
         new_sub = sub.replace(self.system_sep, SEP)
         start = start or 0
@@ -313,6 +313,21 @@ class Path(unicode):
         result = self.find(sub, start, end)
         if result == -1:
             raise ValueError('substring not found')
+
+    def isdir(self):
+        return os.path.isdir(self)
+
+    def isfile(self):
+        return os.path.isfile(self)
+
+    def islink(self):
+        return os.path.islink(self)
+
+    def ismount(self):
+        return os.path.ismount(self)
+
+    def listdir(self):
+        return os.listdir(self)
 
     def lstrip(self, chars=None):
         if chars is not None:
@@ -355,10 +370,10 @@ class Path(unicode):
         ext = '.'.join(self._ext.split('.')[:-remove])
         return self.__class__(self._path + self._base + ext)
 
-def integrate():
-    os.listdir = listdir
-    sys.modules['__builtin__'].Path = Path
-
-def listdir(path):
-    return [Path(p) for p in native_listdir(path)]
-
+    def walk(self, topdown=True, onerror=None, followlinks=False):
+        p = self.__class__
+        for dirpath, dirnames, filenames in os.walk(self, topdown, onerror, followlinks):
+            dirpath = p(dirpath)/''
+            dirnames = [p(dn)/'' for dn in dirnames]
+            filenames = [p(fn) for fn in filenames]
+            yield dirpath, dirnames, filenames
