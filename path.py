@@ -74,11 +74,10 @@ class Path(unicode):
     @property
     def dir_pieces(self):
         result = []
-        sep = self.system_sep
-        if self._dirs[0] == sep:
-            result = [sep]
-        dirs = self._dirs.strip(sep)
-        result.extend(dirs.split(sep))
+        if self._dirs[0] == SEP:
+            result = [SEP]
+        dirs = self._dirs.strip(SEP)
+        result.extend(dirs.split(SEP))
         return result
     
     def __new__(cls, string=u'', sep=None):
