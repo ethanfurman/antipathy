@@ -148,12 +148,12 @@ class Path(unicode):
         if other._vol:
             raise ValueError("Cannot combine %r and %r" % (self, other))
         current = self._path + self._filename
-        if current[-1:] == self.system_sep:
+        if current[-1:] == SEP:
             current = current[:-1]
         next = other._dirs + other._filename
-        if next[:1] == self.system_sep:
+        if next[:1] == SEP:
             next = next[1:]
-        return self.__class__(current + self.system_sep + next)
+        return self.__class__(current + SEP + next)
 
     def __eq__(self, other):
         if not isinstance(other, String):
@@ -176,23 +176,23 @@ class Path(unicode):
         vol = self._vol
         current = self._dirs
         next = other._dirs
-        if current and next and next[0] == self.system_sep:
+        if current and next and next[0] == SEP:
                 dirs = current + next[1:]
         else:
             dirs = current + next
         new_path = []
-        for dir in dirs.split(self.system_sep):
+        for dir in dirs.split(SEP):
             if dir not in ('.','..'):
                 new_path.append(dir)
             elif dir == '..':
                 if not new_path or new_path[-1] == '':
                     raise ValueError("Too many .. dirs in %s" % dirs)
                 new_path.pop()
-        dirs = self.system_sep.join(new_path)
+        dirs = SEP.join(new_path)
         base = self._base + other._base
         ext = self._ext + other._ext
-        if vol[:2] == self.system_sep*2 and dirs[:1] != self.system_sep:
-            dirs = self.system_sep + dirs
+        if vol[:2] == SEP*2 and dirs[:1] != SEP:
+            dirs = SEP + dirs
         return self.__class__(''.join([vol, dirs, base, ext]))
 
     def __ne__(self, other):
@@ -271,8 +271,8 @@ class Path(unicode):
                 raise ValueError("cannot subtract %r from %r" % (o_ext, dirs + s_ext))
         else:
             ext = s_ext
-        if vol[:2] == self.system_sep*2 and not dirs[:1] == self.system_sep:
-            dirs = self.system_sep + dirs
+        if vol[:2] == SEP*2 and not dirs[:1] == SEP:
+            dirs = SEP + dirs
         return self.__class__(vol + dirs + base + ext)
     __truediv__ = __div__
 

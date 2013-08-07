@@ -4,7 +4,7 @@ import platform
 import path
 from path import Path
 
-IS_WIN = platform.platform() == 'Windows'
+IS_WIN = platform.platform().startswith('Windows')
 SEP = not IS_WIN and '\\' or None
 
 print path.__file__
