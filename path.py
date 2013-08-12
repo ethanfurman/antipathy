@@ -29,6 +29,7 @@ POSSIBILITY OF SUCH DAMAGE.
 """
 
 import os
+from glob import glob
 
 String = (str, unicode)
 native_listdir = os.listdir
@@ -307,6 +308,9 @@ class Path(unicode):
 
     def format_map(self, other):
         raise AttributeError("'Path' object has no attribute 'format_map'")
+
+    def glob(self, pattern):
+        return [Path(p) for p in glob(self/pattern)]
 
     def index(self, sub, start=None, end=None):
         result = self.find(sub, start, end)
