@@ -1,10 +1,10 @@
 """\
 Copyright
 =========
-    - Copyright: 2011 Ethan Furman
+    - Copyright: 2011-2013 Ethan Furman
     - Author: Ethan Furman
     - Contact: ethan@stoneleaf.us
-    - Version: 0.01.001 as of 14 Apr 2011
+    - Version: 0.10.001 as of 24 Sep 2013
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
