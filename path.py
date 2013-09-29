@@ -29,14 +29,14 @@ POSSIBILITY OF SUCH DAMAGE.
 """
 
 import os
-from glob import glob
+from glob import glob as globber
 
 String = (str, unicode)
 native_listdir = os.listdir
 
 SEP = '/'
 
-class Path(unicode):
+class Path(str):
     """\
     vol = [ c: | //node/sharepoint | '' ]
     dirs  = [ / | ./ ] + path/to/somewhere/
@@ -81,11 +81,11 @@ class Path(unicode):
         result.extend(dirs.split(SEP))
         return result
     
-    def __new__(cls, string=u'', sep=None):
+    def __new__(cls, string='', sep=None):
         if isinstance(string, cls):
             return string
-        elif isinstance(string, str):
-            string = string.decode('ASCII')
+        elif isinstance(string, unicode):
+            string = string.encode('latin1')
         vol = dirs = filename = base = ext = ''
         #- string = string.strip()
         if sep and sep != SEP:
@@ -122,8 +122,8 @@ class Path(unicode):
                     base, ext = filename[:ext_start], filename[ext_start:]
                 else:
                     base = filename
-        blank = unicode.__new__(cls)
-        p = unicode.__new__(cls, vol + dirs + filename)
+        blank = str.__new__(cls)
+        p = str.__new__(cls, vol + dirs + filename)
         p._vol = vol
         p._dirs = dirs
         p._path = vol + dirs
@@ -289,7 +289,7 @@ class Path(unicode):
             try:
                 new_suffix = suffix.__class__([x.replace(self.system_sep, SEP) for x in suffix])
             except:
-                raise TypeError("Can't convert %r to unicode implicitly" % suffix.__class__)
+                raise TypeError("Can't convert %r to str implicitly" % suffix.__class__)
         start = start or 0
         end = end or len(self)
         return (self._path + self._filename).endswith(new_suffix, start, end)
@@ -309,8 +309,8 @@ class Path(unicode):
     def format_map(self, other):
         raise AttributeError("'Path' object has no attribute 'format_map'")
 
-    def glob(self, pattern):
-        return [Path(p) for p in glob(self/pattern)]
+    def glob(self):
+        return [Path(p) for p in globber(self)]
 
     def index(self, sub, start=None, end=None):
         result = self.find(sub, start, end)
@@ -357,7 +357,7 @@ class Path(unicode):
             try:
                 new_prefix = prefix.__class__([x.replace(self.system_sep, SEP) for x in prefix])
             except:
-                raise TypeError("Can't convert %r to unicode implicitly" % prefix.__class__)
+                raise TypeError("Can't convert %r to str implicitly" % prefix.__class__)
         start = start or 0
         end = end or len(self)
         return (self._path + self._filename).startswith(new_prefix, start, end)
@@ -380,3 +380,10 @@ class Path(unicode):
             dirnames = [p(dn)/'' for dn in dirnames]
             filenames = [p(fn) for fn in filenames]
             yield dirpath, dirnames, filenames
+
+def glob(pattern):
+    return [Path(p) for p in globber(pattern)]
+
+def listdir(dir):
+    return os.listdir(dir)
+
