@@ -337,6 +337,19 @@ class Path(str):
             chars = chars.replace(self.system_sep, SEP)
         return self.__class__((self._path + self._filename).lstrip(chars))
 
+    def mkdir(self, mode=None):
+        if mode is None:
+            os.mkdir(self)
+        else:
+            os.mkdir(self, mode)
+
+    def mkdirs(self, mode=None):
+        if mode is None:
+            os.mkdirs(self)
+        else:
+            os.mkdirs(self, mode)
+
+
     def replace(self, old, new, count=None):
         old = old.replace(self.system_sep, SEP)
         new = new.replace(self.system_sep, SEP)
