@@ -75,10 +75,11 @@ class Path(str):
     @property
     def dir_pieces(self):
         result = []
+        cls = self.__class__
         if self._dirs[0] == SEP:
-            result = [SEP]
+            result = [cls(SEP)]
         dirs = self._dirs.strip(SEP)
-        result.extend(dirs.split(SEP))
+        result.extend([cls(d) for d in dirs.split(SEP)])
         return result
     
     def __new__(cls, string='', sep=None):
@@ -344,11 +345,12 @@ class Path(str):
             os.mkdir(self, mode)
 
     def mkdirs(self, mode=None):
-        if mode is None:
-            os.mkdirs(self)
-        else:
-            os.mkdirs(self, mode)
-
+        path = self.vol
+        segments = self.dir_pieces
+        for dir in segments:
+            path /= dir
+            if not path.exists():
+                self.mkdir(path, mode)
 
     def replace(self, old, new, count=None):
         old = old.replace(self.system_sep, SEP)
