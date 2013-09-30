@@ -277,6 +277,20 @@ class Path(str):
         return self.__class__(vol + dirs + base + ext)
     __truediv__ = __div__
 
+    def copy(self, dst):
+        'thin wrapper around shutil.copy2'
+        if isinstance(dst, self.__class__):
+            dst = str(dst)
+        src = str(self)
+        shutil.copy2(src, dst)
+
+    def copytree(self, dst, symlinks=False, ignore=None):
+        'thin wrapper around shutil.copytree'
+        if isinstance(dst, self.__class__):
+            dst = str(dst)
+        src = str(src)
+        shutil.copytree(src, dst, symlinks, ignore)
+
     def count(self, sub, start=None, end=None):
         new_sub = sub.replace(self.system_sep, SEP)
         start = start or 0
@@ -352,6 +366,13 @@ class Path(str):
             if not path.exists():
                 self.mkdir(path, mode)
 
+    def move(self, dst):
+        'thin wrapper around shutil.move'
+        if isinstance(dst, self.__class__):
+            dst = str(dst)
+        src = str(self)
+        shutil.move(src, dst)
+
     def replace(self, old, new, count=None):
         old = old.replace(self.system_sep, SEP)
         new = new.replace(self.system_sep, SEP)
@@ -359,6 +380,16 @@ class Path(str):
             return self.__class__((self._path + self._filename).replace(old, new, count))
         else:
             return self.__class__((self._path + self._filename).replace(old, new))
+
+    def rmtree(self, ignore_errors=None, onerror=None):
+        'thin wrapper around shutil.rmtree'
+        target = str(self)
+        if ignore_errors is None and onerror is None:
+            shutil.rmtree(target)
+        elif ignore_errors is not None and onerror is None:
+            shutil.rmtree(target, ignore_errors)
+        elif onerror is not None:
+            shutil.rmtree(target, ignore_errors, onerror)
 
     def rstrip(self, chars=None):
         if chars is not None:
