@@ -4,7 +4,7 @@ Copyright
     - Copyright: 2011-2013 Ethan Furman
     - Author: Ethan Furman
     - Contact: ethan@stoneleaf.us
-    - Version: 0.10.001 as of 24 Sep 2013
+    - Version: 0.50.001 as of 18 Oct 2013
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -29,9 +29,10 @@ POSSIBILITY OF SUCH DAMAGE.
 """
 
 import os
-from glob import glob as globber
+import glob
 
 String = (str, unicode)
+native_glob = glob.glob
 native_listdir = os.listdir
 
 SEP = '/'
@@ -390,7 +391,7 @@ methods['format_map'] = format_map
 del format_map
 
 def glob(self):
-    return [Path(p) for p in globber(self)]
+    return [Path(p) for p in native_glob(self)]
 methods['glob'] = glob
 del glob
 
@@ -532,7 +533,7 @@ sPath = type('sPath', (Path, str), methods)
 uPath = type('uPath', (Path, unicode), methods)
 
 def glob(pattern):
-    return [Path(p) for p in globber(pattern)]
+    return [Path(p) for p in native_glob(pattern)]
 
 def listdir(dir):
     return [Path(p) for p in os.listdir(dir)]
