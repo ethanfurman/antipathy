@@ -5,7 +5,6 @@ import path
 from path import Path
 
 IS_WIN = platform.platform().startswith('Windows')
-SEP = not IS_WIN and '\\' or None
 
 print path.__file__
 
@@ -170,7 +169,11 @@ class TestPath(unittest.TestCase):
         "check file paths"
         enum = 0
         for actual, expected, vol, dirs, filename, base, ext in self.test_paths:
-            p = Path(actual, sep=SEP)
+            if '\\' in actual:
+                sep = '\\'
+            else:
+                sep = None
+            p = Path(actual, sep=sep)
             self.assertEqual(p, expected, "failed on iter %d --> %r != %r" % (enum, p, expected))
             self.assertEqual(p.vol, vol, "failed on iter %d --> %r != %r" % (enum, p.vol, vol))
             self.assertEqual(p.dirs, dirs, "failed on iter %d --> %r != %r" % (enum, p.dirs, dirs))
