@@ -522,8 +522,8 @@ del strip_ext
 def walk(self, topdown=True, onerror=None, followlinks=False):
     p = self.__class__
     for dirpath, dirnames, filenames in os.walk(self, topdown, onerror, followlinks):
-        dirpath = p(dirpath)/''
-        dirnames = [p(dn)/'' for dn in dirnames]
+        dirpath = p(dirpath)
+        dirnames = [p(dn) for dn in dirnames]
         filenames = [p(fn) for fn in filenames]
         yield dirpath, dirnames, filenames
 methods['walk'] = walk
