@@ -111,6 +111,10 @@ def __new__(cls, string='', sep=None):
         string = string.replace(sep, SEP)
     elif system_sep != SEP:
         string = string.replace(system_sep, SEP)
+    if string == '.':
+        string = './'
+    elif string == '..':
+        string = '../'
     string = string.rstrip('.')
     sep = SEP
     if string[:2] == sep+sep:           # usually '//'
