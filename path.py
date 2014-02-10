@@ -508,17 +508,17 @@ def startswith(self, prefix, start=None, end=None):
 methods['startswith'] = startswith
 del startswith
 
+def stat(self):
+    return os.stat(self)
+methods['stat'] = stat
+del stat
+
 def strip(self, chars=None):
     if chars is not None:
         chars = chars.replace(system_sep, SEP)
     return self.__class__((self._path + self._filename).strip(chars))
 methods['strip'] = strip
 del strip
-
-def stat(self):
-    return os.stat(self)
-methods['stat'] = stat
-del stat
 
 def strip_ext(self, remove=1):
     if not remove:
