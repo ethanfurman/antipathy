@@ -515,6 +515,11 @@ def strip(self, chars=None):
 methods['strip'] = strip
 del strip
 
+def stat(self):
+    return os.stat(self)
+methods['stat'] = stat
+del stat
+
 def strip_ext(self, remove=1):
     if not remove:
         return self.__class__(self._path + self._base)
