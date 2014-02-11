@@ -4,7 +4,7 @@ Copyright
     - Copyright: 2011-2013 Ethan Furman
     - Author: Ethan Furman
     - Contact: ethan@stoneleaf.us
-    - Version: 0.50.001 as of 18 Oct 2013
+    - Version: 0.60.001 as of 11 Feb 2014
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -546,4 +546,3 @@ def glob(pattern):
 
 def listdir(dir):
     return [Path(p) for p in os.listdir(dir)]
-
