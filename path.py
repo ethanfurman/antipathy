@@ -4,7 +4,7 @@ Copyright
     - Copyright: 2011-2014 Ethan Furman
     - Author: Ethan Furman
     - Contact: ethan@stoneleaf.us
-    - Version: 0.60.002 as of 13 Feb 2014
+    - Version: 0.61.000 as of 2014-03-12
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -28,16 +28,20 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
 
-import os
-import glob
+import os as _os
+import glob as _glob
+import sys as _sys
+
+__all__ = ['Path']
 
 String = (str, unicode)
-native_glob = glob.glob
-native_listdir = os.listdir
+native_glob = _glob.glob
+native_listdir = _os.listdir
 
 SEP = '/'
-system_sep = os.path.sep
+system_sep = _os.path.sep
 
+pyver = float('%s.%s' % _sys.version_info[:2])
 
 class Path(object):
     """\
@@ -372,7 +376,7 @@ methods['endswith'] = endswith
 del endswith
 
 def exists(self):
-    return os.path.exists(self)
+    return _os.path.exists(self)
 methods['exists'] = exists
 del exists
 
@@ -407,27 +411,27 @@ methods['index'] = index
 del index
 
 def isdir(self):
-    return os.path.isdir(self)
+    return _os.path.isdir(self)
 methods['isdir'] = isdir
 del isdir
 
 def isfile(self):
-    return os.path.isfile(self)
+    return _os.path.isfile(self)
 methods['isfile'] = isfile
 del isfile
 
 def islink(self):
-    return os.path.islink(self)
+    return _os.path.islink(self)
 methods['islink'] = islink
 del islink
 
 def ismount(self):
-    return os.path.ismount(self)
+    return _os.path.ismount(self)
 methods['ismount'] = ismount
 del ismount
 
 def listdir(self):
-    return [Path(p) for p in os.listdir(self)]
+    return [Path(p) for p in _os.listdir(self)]
 methods['listdir'] = listdir
 del listdir
 
@@ -440,9 +444,9 @@ del lstrip
 
 def mkdir(self, mode=None):
     if mode is None:
-        os.mkdir(self)
+        _os.mkdir(self)
     else:
-        os.mkdir(self, mode)
+        _os.mkdir(self, mode)
 methods['mkdir'] = mkdir
 del mkdir
 
@@ -509,7 +513,7 @@ methods['startswith'] = startswith
 del startswith
 
 def stat(self):
-    return os.stat(self)
+    return _os.stat(self)
 methods['stat'] = stat
 del stat
 
@@ -528,13 +532,22 @@ def strip_ext(self, remove=1):
 methods['strip_ext'] = strip_ext 
 del strip_ext
 
-def walk(self, topdown=True, onerror=None, followlinks=False):
-    p = self.__class__
-    for dirpath, dirnames, filenames in os.walk(self, topdown, onerror, followlinks):
-        dirpath = p(dirpath)
-        dirnames = [p(dn) for dn in dirnames]
-        filenames = [p(fn) for fn in filenames]
-        yield dirpath, dirnames, filenames
+if pyver < 2.6:
+    def walk(self, topdown=True, onerror=None):
+        p = self.__class__
+        for dirpath, dirnames, filenames in _os.walk(self, topdown, onerror):
+            dirpath = p(dirpath)
+            dirnames = [p(dn) for dn in dirnames]
+            filenames = [p(fn) for fn in filenames]
+            yield dirpath, dirnames, filenames
+else:
+    def walk(self, topdown=True, onerror=None, followlinks=False):
+        p = self.__class__
+        for dirpath, dirnames, filenames in _os.walk(self, topdown, onerror, followlinks):
+            dirpath = p(dirpath)
+            dirnames = [p(dn) for dn in dirnames]
+            filenames = [p(fn) for fn in filenames]
+            yield dirpath, dirnames, filenames
 methods['walk'] = walk
 del walk
 
@@ -545,4 +558,4 @@ def glob(pattern):
     return [Path(p) for p in native_glob(pattern)]
 
 def listdir(dir):
-    return [Path(p) for p in os.listdir(dir)]
+    return [Path(p) for p in _os.listdir(dir)]
