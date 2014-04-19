@@ -99,10 +99,11 @@ del ext
 def dir_pieces(self):
     result = []
     cls = self.__class__
-    if self._dirs[0] == SEP:
-        result = [cls(SEP)]
-    dirs = self._dirs.strip(SEP)
-    result.extend([cls(d) for d in dirs.split(SEP)])
+    if self._dirs:
+        if self._dirs[0] == SEP:
+            result = [cls(SEP)]
+        dirs = self._dirs.strip(SEP)
+        result.extend([cls(d) for d in dirs.split(SEP)])
     return result
 methods['dir_pieces'] = property(dir_pieces)
 del dir_pieces
