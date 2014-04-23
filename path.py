@@ -4,7 +4,7 @@ Copyright
     - Copyright: 2011-2014 Ethan Furman
     - Author: Ethan Furman
     - Contact: ethan@stoneleaf.us
-    - Version: 0.65.000 as of 2014-04-18
+    - Version: 0.66.000 as of 2014-04-23
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -480,6 +480,12 @@ def replace(self, old, new, count=None):
         return self.__class__((self._path + self._filename).replace(old, new))
 methods['replace'] = replace
 del replace
+
+def rmdir(self):
+    'thin wrapper around os.rmdir'
+    os.rmdir(self)
+methods['rmdir'] = rmdir
+del rmdir
 
 def rmtree(self, ignore_errors=None, onerror=None):
     'thin wrapper around shutil.rmtree'
