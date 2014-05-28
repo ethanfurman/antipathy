@@ -4,7 +4,7 @@ Copyright
     - Copyright: 2011-2014 Ethan Furman
     - Author: Ethan Furman
     - Contact: ethan@stoneleaf.us
-    - Version: 0.66.000 as of 2014-04-23
+    - Version: 0.67.000 as of 2014-05-28
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -363,6 +363,12 @@ def count(self, sub, start=None, end=None):
 methods['count'] = count
 del count
 
+def chown(self, uid, gid):
+    "thin wrapper around os.chown"
+    _os.chown(self, uid, gid)
+methods['chown'] = chown
+del chown
+
 def endswith(self, suffix, start=None, end=None):
     if isinstance(suffix, String):
         new_suffix = suffix.replace(system_sep, SEP)
@@ -483,7 +489,7 @@ del replace
 
 def rmdir(self):
     'thin wrapper around os.rmdir'
-    os.rmdir(self)
+    _os.rmdir(self)
 methods['rmdir'] = rmdir
 del rmdir
 
