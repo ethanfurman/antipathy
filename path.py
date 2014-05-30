@@ -4,7 +4,7 @@ Copyright
     - Copyright: 2011-2014 Ethan Furman
     - Author: Ethan Furman
     - Contact: ethan@stoneleaf.us
-    - Version: 0.67.001 as of 2014-05-30
+    - Version: 0.71.002 as of 2014-05-30
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -43,6 +43,8 @@ SEP = '/'
 system_sep = _os.path.sep
 
 pyver = float('%s.%s' % _sys.version_info[:2])
+
+version = 0, 71, 2
 
 class Path(object):
     """\
@@ -109,6 +111,10 @@ def dir_pieces(self):
 methods['dir_pieces'] = property(dir_pieces)
 del dir_pieces
 
+def base_cls(self):
+    return self.__class__.__base__
+methods['base_cls'] = property(base_cls)
+del base_cls
 
 def __new__(cls, string='', sep=None):
     new_cls = cls.__bases__[1]  # either str or unicode
@@ -340,8 +346,8 @@ del __sub__
 def copy(self, dst):
     'thin wrapper around shutil.copy2'
     if isinstance(dst, self.__class__):
-        dst = str(dst)
-    src = str(self)
+        dst = self.base_cls(dst)
+    src = self.base_cls(self)
     _shutil.copy2(src, dst)
 methods['copy'] = copy
 del copy
@@ -349,8 +355,8 @@ del copy
 def copytree(self, dst, symlinks=False, ignore=None):
     'thin wrapper around shutil.copytree'
     if isinstance(dst, self.__class__):
-        dst = str(dst)
-    src = str(src)
+        dst = self.base_cls(dst)
+    src = self.base_cls(src)
     _shutil.copytree(src, dst, symlinks, ignore)
 methods['copytree'] = copytree
 del copytree
@@ -477,11 +483,21 @@ del mkdirs
 def move(self, dst):
     'thin wrapper around shutil.move'
     if isinstance(dst, self.__class__):
-        dst = str(dst)
-    src = str(self)
+        dst = self.base_cls(dst)
+    src = self.base_cls(self)
+    print src, dst
     _shutil.move(src, dst)
 methods['move'] = move
 del move
+
+def rename(self, dst):
+    'thin wrapper around os.rename)'
+    if isinstance(dst, self.__class__):
+        dst = self.base_cls(dst)
+    src = self.base_cls(self)
+    _os.rename(src, dst)
+methods['rename'] = rename
+del rename
 
 def replace(self, old, new, count=None):
     old = old.replace(system_sep, SEP)
@@ -501,7 +517,7 @@ del rmdir
 
 def rmtree(self, ignore_errors=None, onerror=None):
     'thin wrapper around shutil.rmtree'
-    target = str(self)
+    target = self.base_cls(self)
     if ignore_errors is None and onerror is None:
         _shutil.rmtree(target)
     elif ignore_errors is not None and onerror is None:
