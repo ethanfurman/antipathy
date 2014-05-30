@@ -4,7 +4,7 @@ Copyright
     - Copyright: 2011-2014 Ethan Furman
     - Author: Ethan Furman
     - Contact: ethan@stoneleaf.us
-    - Version: 0.67.000 as of 2014-05-28
+    - Version: 0.67.001 as of 2014-05-30
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -362,6 +362,12 @@ def count(self, sub, start=None, end=None):
     return (self._path + self._filename).count(new_sub)
 methods['count'] = count
 del count
+
+def chmod(self, mode):
+    "thin wrapper around os.chmod"
+    _os.chmod(self, mode)
+methods['chmod'] = chmod
+del chmod
 
 def chown(self, uid, gid):
     "thin wrapper around os.chown"
