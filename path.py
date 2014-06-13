@@ -44,7 +44,7 @@ system_sep = _os.path.sep
 
 pyver = float('%s.%s' % _sys.version_info[:2])
 
-version = 0, 71, 2
+version = 0, 73, 0
 
 class Path(object):
     """\
@@ -99,7 +99,27 @@ def ext(self):
 methods['ext'] = property(ext)
 del ext
 
-def dir_pieces(self):
+def elements(self):
+    return list(self.iter())
+methods['elements'] = property(elements)
+del elements
+
+def dir_elements(self):
+    return list(self.iter_dirs())
+methods['dir_elements'] = property(dir_elements)
+del dir_elements
+
+def iter_all(self):
+    result = list(self.iter_dirs())
+    if self.vol:
+        result.insert(0, self.vol)
+    if self.filename:
+        result.append(self.filename)
+    return iter(result)
+methods['iter'] = iter_all
+del iter_all
+
+def iter_dirs(self):
     result = []
     cls = self.__class__
     if self._dirs:
@@ -107,9 +127,9 @@ def dir_pieces(self):
             result = [cls(SEP)]
         dirs = self._dirs.strip(SEP)
         result.extend([cls(d) for d in dirs.split(SEP)])
-    return result
-methods['dir_pieces'] = property(dir_pieces)
-del dir_pieces
+    return iter(result)
+methods['iter_dirs'] = iter_dirs
+del iter_dirs
 
 def base_cls(self):
     return self.__class__.__base__
