@@ -144,7 +144,7 @@ class TestPath(unittest.TestCase):
             '/', '', '/', '', '', ''),
         )
 
-    def test_00(self):
+    def test_errors(self):
         "check errors"
         self.assertRaises(ValueError, Path, 'c://test')
         self.assertRaises(ValueError, Path, 'c:/test//file.txt')
@@ -165,7 +165,7 @@ class TestPath(unittest.TestCase):
         self.assertRaises(TypeError, Path('/some/other/path/').endswith, set(['an','ending','or','two']))
         self.assertRaises(TypeError, Path('/some/other/path/').startswith, set(['a','start','or','two']))
 
-    def test_01(self):
+    def test_paths(self):
         "check file paths"
         enum = 0
         for actual, expected, vol, dirs, filename, base, ext in self.test_paths:
@@ -182,7 +182,7 @@ class TestPath(unittest.TestCase):
             self.assertEqual(p.ext,  ext, "failed on iter %d --> %r != %r" % (enum, p.ext, ext))
             enum += 1
 
-    def test_02(self):
+    def test_os_path_join(self):
         "check os.path.join"
         if IS_WIN:
             self.assertEqual(os.path.join(Path('c:'), Path('/temp/')), Path('c:/temp/'))
@@ -192,13 +192,13 @@ class TestPath(unittest.TestCase):
             self.assertEqual(os.path.join(Path('/temp/file'), Path('c:/root')), Path('/temp/file/c:/root'))
         self.assertEqual(os.path.join(Path('c:/'), Path('temp/')), Path('c:/temp/'))
 
-    def test_03(self):
+    def test_addition(self):
         "check path addition"
         self.assertEqual(Path('c:') + Path('/temp/'), Path('c:/temp/'))
         self.assertEqual(Path('c:/') + Path('temp/'), Path('c:/temp/'))
         self.assertEqual(Path('c:/temp/') + Path('backups/'), Path('c:/temp/backups/'))
 
-    def test_04(self):
+    def test_multiplication(self):
         "check path fusing"
         test_data = (
             ('c:','/temp/','c:/temp/'),
@@ -223,7 +223,7 @@ class TestPath(unittest.TestCase):
             start *= add
             self.assertEqual(start, Path(result), "%r * %r (%s) != %r" % (initial, add, start, Path(result)))
 
-    def test_05(self):
+    def test_division(self):
         "check path division"
         self.assertEqual(Path('c:') / Path('/temp/'), Path('c:/temp/'))
         self.assertEqual(Path('c:/') / Path('/temp/'), Path('c:/temp/'))
@@ -236,7 +236,7 @@ class TestPath(unittest.TestCase):
         self.assertEqual(Path('hello') / Path('/temp/'), Path('hello/temp/'))
         self.assertEqual(Path('') / Path('/temp/'), Path('/temp/'))
 
-    def test_06(self):
+    def test_subtraction(self):
         "check path subtraction"
         self.assertEqual(Path('c:/temp') - Path('c:/temp'), Path(''))
         self.assertEqual(Path('c:/temp') - Path('/temp'), Path('c:'))
@@ -253,8 +253,6 @@ class TestPath(unittest.TestCase):
         self.assertEqual(Path('c:/temp/backups.old') - Path('c:backups'), Path('/temp/.old'))
         self.assertEqual(Path('c:/temp/destination.txt') - Path(''), Path('c:/temp/destination.txt'))
 
-    def test_07(self):
-        pass
 
 if __name__ == '__main__':
     unittest.main()
