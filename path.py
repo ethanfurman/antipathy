@@ -492,8 +492,8 @@ del mkdir
 
 def mkdirs(self, mode=None):
     path = self.vol
-    segments = self.dir_pieces
-    for dir in segments:
+    elements = self.dir_elements
+    for dir in elements:
         path /= dir
         if not path.exists():
             self.mkdir(path, mode)
