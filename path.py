@@ -44,7 +44,7 @@ system_sep = _os.path.sep
 
 pyver = float('%s.%s' % _sys.version_info[:2])
 
-version = 0, 73, 1
+version = 0, 73, 2
 
 class Path(object):
     """\
@@ -496,7 +496,7 @@ def mkdirs(self, mode=None):
     for dir in elements:
         path /= dir
         if not path.exists():
-            self.mkdir(path, mode)
+            path.mkdir(mode)
 methods['mkdirs'] = mkdirs
 del mkdirs
 
