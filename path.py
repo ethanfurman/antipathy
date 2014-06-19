@@ -4,7 +4,7 @@ Copyright
     - Copyright: 2011-2014 Ethan Furman
     - Author: Ethan Furman
     - Contact: ethan@stoneleaf.us
-    - Version: 0.71.002 as of 2014-05-30
+    - Version: 0.73.002 as of 2014-06-19
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -126,7 +126,8 @@ def iter_dirs(self):
         if self._dirs[0] == SEP:
             result = [cls(SEP)]
         dirs = self._dirs.strip(SEP)
-        result.extend([cls(d) for d in dirs.split(SEP)])
+        if dirs:
+            result.extend([cls(d) for d in dirs.split(SEP)])
     return iter(result)
 methods['iter_dirs'] = iter_dirs
 del iter_dirs
