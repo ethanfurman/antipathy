@@ -4,7 +4,7 @@ Copyright
     - Copyright: 2011-2014 Ethan Furman
     - Author: Ethan Furman
     - Contact: ethan@stoneleaf.us
-    - Version: 0.73.002 as of 2014-06-19
+    - Version: 0.73.003 as of 2014-06-19
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -44,7 +44,7 @@ system_sep = _os.path.sep
 
 pyver = float('%s.%s' % _sys.version_info[:2])
 
-version = 0, 73, 2
+version = 0, 73, 3
 
 class Path(object):
     """\
@@ -493,7 +493,7 @@ del mkdir
 
 def mkdirs(self, mode=None):
     path = self.vol
-    elements = self.dir_elements
+    elements = self.elements
     for dir in elements:
         path /= dir
         if not path.exists():
