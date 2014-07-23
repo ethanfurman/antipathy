@@ -4,7 +4,7 @@ Copyright
     - Copyright: 2011-2014 Ethan Furman
     - Author: Ethan Furman
     - Contact: ethan@stoneleaf.us
-    - Version: 0.73.003 as of 2014-06-19
+    - Version: 0.73.004 as of 2014-07-07
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -44,7 +44,7 @@ system_sep = _os.path.sep
 
 pyver = float('%s.%s' % _sys.version_info[:2])
 
-version = 0, 73, 3
+version = 0, 73, 5
 
 class Path(object):
     """\
@@ -325,42 +325,17 @@ def __sub__(self, other):
     if not isinstance(other, String):
         return NotImplemented
     other = self.__class__(other)
-    o_vol, o_dirs, o_base, o_ext = other._vol, other._dirs, other._base, other._ext
-    s_vol, s_dirs, s_base, s_ext = self._vol, self._dirs, self._base, self._ext
-    if o_vol:
-        if o_vol != s_vol:
-            raise ValueError("cannot subtract %r from %r" % (o_vol, s_vol))
+    if other._vol:
+        if other._vol != self._vol:
+            raise ValueError("cannot subtract %r from %r" % (other, self))
         vol = ''
     else:
-        vol = s_vol
-    if o_dirs:
-        if not s_dirs.startswith(o_dirs):
-            raise ValueError("cannot subtract %r from %r" % (o_dirs, s_dirs))
-        dirs = s_dirs[len(o_dirs):]
-    else:
-        dirs = s_dirs
-    if o_base or o_ext:
-        o_filename = o_base + o_ext
-        if dirs.startswith(o_filename):
-            dirs = dirs[len(o_filename):]
-            o_base = o_ext = ''
-    if o_base:
-        if s_base.startswith(o_base):
-            base = s_base[len(o_base):]
-        else:
-            raise ValueError("cannot subtract %r from %r" % (o_base, dirs + s_base))
-    else:
-        base = s_base
-    if o_ext:
-        if s_ext.startswith(o_ext):
-            ext = s_ext[len(o_ext):]
-        else:
-            raise ValueError("cannot subtract %r from %r" % (o_ext, dirs + s_ext))
-    else:
-        ext = s_ext
-    if vol[:2] == SEP*2 and not dirs[:1] == SEP:
-        dirs = SEP + dirs
-    return self.__class__(vol + dirs + base + ext)
+        vol = self._vol
+    o = other.dirs + other.filename
+    s = self.dirs + self.filename
+    if not s.startswith(o):
+        raise ValueError("cannot subtract %r from %r" % (other, self))
+    return self.__class__(vol+s[len(o):])
 methods['__sub__'] = __sub__
 del __sub__
 
@@ -439,8 +414,8 @@ def format_map(self, other):
 methods['format_map'] = format_map
 del format_map
 
-def glob(self):
-    return [Path(p) for p in native_glob(self)]
+def glob(self, pattern=''):
+    return [Path(p) for p in native_glob(self + pattern)]
 methods['glob'] = glob
 del glob
 
@@ -483,21 +458,29 @@ def lstrip(self, chars=None):
 methods['lstrip'] = lstrip
 del lstrip
 
-def mkdir(self, mode=None):
+def mkdir(self, mode=None, owner=None):
+    """
+    Create a directory, setting owner if given.
+    """
     if mode is None:
         _os.mkdir(self)
     else:
         _os.mkdir(self, mode)
+    if owner is not None:
+        _os.chown(*owner)
 methods['mkdir'] = mkdir
 del mkdir
 
-def mkdirs(self, mode=None):
+def mkdirs(self, mode=None, owner=None):
+    """
+    Create any missing intermediate directories, setting owner if given.
+    """
     path = self.vol
     elements = self.elements
     for dir in elements:
         path /= dir
         if not path.exists():
-            path.mkdir(mode)
+            path.mkdir(mode, owner)
 methods['mkdirs'] = mkdirs
 del mkdirs
 

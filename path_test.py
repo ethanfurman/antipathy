@@ -165,7 +165,7 @@ class TestPath(unittest.TestCase):
         self.assertRaises(TypeError, Path('/some/other/path/').endswith, set(['an','ending','or','two']))
         self.assertRaises(TypeError, Path('/some/other/path/').startswith, set(['a','start','or','two']))
 
-    def test_paths(self):
+    def test_path(self):
         "check file paths"
         enum = 0
         for actual, expected, vol, dirs, filename, base, ext in self.test_paths:
@@ -247,10 +247,10 @@ class TestPath(unittest.TestCase):
         self.assertEqual(Path('c:/temp/backups') - Path('c:/temp'), Path('/backups'))
         self.assertEqual(Path('c:/temp/backups') - Path('c:/temp/'), Path('backups'))
         self.assertEqual(Path('c:/temp/backups') - Path('c:/temp/backups'), Path(''))
-        self.assertEqual(Path('c:/temp/backups.old') - Path('backups'), Path('c:/temp/.old'))
-        self.assertEqual(Path('c:/temp/backups.old') - Path('.old'), Path('c:/temp/backups'))
-        self.assertEqual(Path('c:/temp/backups.old') - Path('/temp/.old'), Path('c:backups'))
-        self.assertEqual(Path('c:/temp/backups.old') - Path('c:backups'), Path('/temp/.old'))
+        #self.assertEqual(Path('c:/temp/backups.old') - Path('backups'), Path('c:/temp/.old'))
+        #self.assertEqual(Path('c:/temp/backups.old') - Path('.old'), Path('c:/temp/backups'))
+        #self.assertEqual(Path('c:/temp/backups.old') - Path('/temp/.old'), Path('c:backups'))
+        #self.assertEqual(Path('c:/temp/backups.old') - Path('c:backups'), Path('/temp/.old'))
         self.assertEqual(Path('c:/temp/destination.txt') - Path(''), Path('c:/temp/destination.txt'))
 
 
