@@ -44,7 +44,7 @@ system_sep = _os.path.sep
 
 pyver = float('%s.%s' % _sys.version_info[:2])
 
-version = 0, 73, 5
+version = 0, 73, 6
 
 class Path(object):
     """\
@@ -467,7 +467,7 @@ def mkdir(self, mode=None, owner=None):
     else:
         _os.mkdir(self, mode)
     if owner is not None:
-        _os.chown(*owner)
+        _os.chown(self, *owner)
 methods['mkdir'] = mkdir
 del mkdir
 
