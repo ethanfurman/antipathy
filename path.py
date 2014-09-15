@@ -28,12 +28,13 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
 
+from os import F_OK, R_OK, W_OK, X_OK
 import glob as _glob
 import os as _os
 import shutil as _shutil
 import sys as _sys
 
-__all__ = ['Path']
+__all__ = ['Path', 'F_OK', 'R_OK', 'W_OK', 'X_OK']
 
 String = (str, unicode)
 native_glob = _glob.glob
@@ -44,7 +45,7 @@ system_sep = _os.path.sep
 
 pyver = float('%s.%s' % _sys.version_info[:2])
 
-version = 0, 73, 6
+version = 0, 75, 0
 
 class Path(object):
     """\
@@ -339,6 +340,38 @@ def __sub__(self, other):
 methods['__sub__'] = __sub__
 del __sub__
 
+def access(self, mode):
+    return _os.access(self, mode)
+methods['access'] = access
+del access
+
+def chdir(self):
+    return _os.chdir(self)
+methods['chdir'] = chdir
+del(chdir)
+
+def chflags(flags):
+    return _os.chflags(self, flags)
+methods['chflags'] = chflags
+del chflags
+
+def chmod(self, mode):
+    "thin wrapper around os.chmod"
+    _os.chmod(self, mode)
+methods['chmod'] = chmod
+del chmod
+
+def chown(self, uid, gid):
+    "thin wrapper around os.chown"
+    _os.chown(self, uid, gid)
+methods['chown'] = chown
+del chown
+
+def chroot(self):
+    return _os.chroot(self)
+methods['chroot'] = chroot
+del chroot
+
 def copy(self, dst):
     'thin wrapper around shutil.copy2'
     if isinstance(dst, self.__class__):
@@ -364,18 +397,6 @@ def count(self, sub, start=None, end=None):
     return (self._path + self._filename).count(new_sub)
 methods['count'] = count
 del count
-
-def chmod(self, mode):
-    "thin wrapper around os.chmod"
-    _os.chmod(self, mode)
-methods['chmod'] = chmod
-del chmod
-
-def chown(self, uid, gid):
-    "thin wrapper around os.chown"
-    _os.chown(self, uid, gid)
-methods['chown'] = chown
-del chown
 
 def endswith(self, suffix, start=None, end=None):
     if isinstance(suffix, String):
@@ -414,6 +435,16 @@ def format_map(self, other):
 methods['format_map'] = format_map
 del format_map
 
+def getcwd(cls):
+    return cls(_os.getcwd())
+methods['getcwd'] = classmethod(getcwd)
+del getcwd
+
+def getcwdu(cls):
+    return cls(_os.getcwdu())
+methods['getcwdu'] = classmethod(getcwdu)
+del getcwdu
+
 def glob(self, pattern=''):
     return [Path(p) for p in native_glob(self + pattern)]
 methods['glob'] = glob
@@ -446,10 +477,35 @@ def ismount(self):
 methods['ismount'] = ismount
 del ismount
 
+def lchflags(self, flags):
+    return _os.chflags(self, flags)
+methods['lchflags'] = lchflags
+del lchflags
+
+def lchmod(self, mode):
+    return _os.lchmod(self, mode)
+methods['lchmod'] = lchmod
+del lchmod
+
+def lchown(self, uid, gid):
+    return _os.lchown(self, uid, gid)
+methods['lchown'] = lchown
+del lchown
+
+def link(self, new_name):
+    return _os.link(self, new_name)
+methods['link'] = link
+del link
+
 def listdir(self):
     return [Path(p) for p in _os.listdir(self)]
 methods['listdir'] = listdir
 del listdir
+
+def lstat(self):
+    return _os.lstat(self)
+methods['lstat'] = lstat
+del lstat
 
 def lstrip(self, chars=None):
     if chars is not None:
@@ -457,6 +513,11 @@ def lstrip(self, chars=None):
     return self.__class__((self._path + self._filename).lstrip(chars))
 methods['lstrip'] = lstrip
 del lstrip
+
+def mkfifo(self, mode):
+    return _os.mkfifo(self, mode)
+methods['mkfifo'] = mkfifo
+del mkfifo
 
 def mkdir(self, mode=None, owner=None):
     """
@@ -494,6 +555,23 @@ def move(self, dst):
 methods['move'] = move
 del move
 
+def pathconf(self, name):
+    return _os.pathconf(self, name)
+methods['pathconf'] = pathconf
+del pathconf
+
+methods['pathconf_names'] = _os.pathconf_names
+
+def readlink(self):
+    return _os.readlink(self)
+methods['readlink'] = readlink
+del readlink
+
+def removedirs(self):
+    return _os.removedirs(self)
+methods['removedirs'] = removedirs
+del removedirs
+
 def rename(self, dst):
     'thin wrapper around os.rename)'
     if isinstance(dst, self.__class__):
@@ -502,6 +580,11 @@ def rename(self, dst):
     _os.rename(src, dst)
 methods['rename'] = rename
 del rename
+
+def renames(self, dst):
+    return _os.renames(self, dst)
+methods['renames'] = renames
+del renames
 
 def replace(self, old, new, count=None):
     old = old.replace(system_sep, SEP)
@@ -557,6 +640,11 @@ def stat(self):
 methods['stat'] = stat
 del stat
 
+def statvfs(self):
+    return _os.statvfs(self)
+methods['statvfs'] = statvfs
+del statvfs
+
 def strip(self, chars=None):
     if chars is not None:
         chars = chars.replace(system_sep, SEP)
@@ -572,12 +660,22 @@ def strip_ext(self, remove=1):
 methods['strip_ext'] = strip_ext 
 del strip_ext
 
+def symlink(self, new_name):
+    return _os.symlink(self, new_name)
+methods['symlink'] = symlink
+del symlink
+
 def unlink(self):
     "thin wrapper around os.unlink"
     _os.unlink(self)
 methods['unlink'] = unlink
 methods['remove'] = unlink
 del unlink
+
+def utime(self, times):
+    return _os.utime(self, times)
+methods['utime'] = utime
+del utime
 
 if pyver < 2.6:
     def walk(self, topdown=True, onerror=None):
