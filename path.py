@@ -45,7 +45,7 @@ system_sep = _os.path.sep
 
 pyver = float('%s.%s' % _sys.version_info[:2])
 
-version = 0, 75, 0
+version = 0, 75, 1
 
 class Path(object):
     """\
@@ -350,10 +350,11 @@ def chdir(self):
 methods['chdir'] = chdir
 del(chdir)
 
-def chflags(flags):
-    return _os.chflags(self, flags)
-methods['chflags'] = chflags
-del chflags
+if pyver >= 2.6:
+    def chflags(flags):
+        return _os.chflags(self, flags)
+    methods['chflags'] = chflags
+    del chflags
 
 def chmod(self, mode):
     "thin wrapper around os.chmod"
@@ -477,10 +478,11 @@ def ismount(self):
 methods['ismount'] = ismount
 del ismount
 
-def lchflags(self, flags):
-    return _os.chflags(self, flags)
-methods['lchflags'] = lchflags
-del lchflags
+if pyver >= 2.6:
+    def lchflags(self, flags):
+        return _os.chflags(self, flags)
+    methods['lchflags'] = lchflags
+    del lchflags
 
 def lchmod(self, mode):
     return _os.lchmod(self, mode)
