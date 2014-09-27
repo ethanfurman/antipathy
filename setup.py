@@ -40,7 +40,7 @@ Because Path is a subclass of str/unicode, it can still be passed to other funct
 """
 
 setup( name='antipathy',
-       version= '0.75.00',
+       version= '0.75.02',
        license='BSD License',
        description='oo view of file paths and names, subclassed from str/unicode',
        long_description=long_desc,

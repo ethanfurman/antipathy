@@ -45,7 +45,7 @@ system_sep = _os.path.sep
 
 pyver = float('%s.%s' % _sys.version_info[:2])
 
-version = 0, 75, 1
+version = 0, 75, 2
 
 class Path(object):
     """\
@@ -67,6 +67,23 @@ class Path(object):
             new_cls = uPath
         p = new_cls.__new__(new_cls, string, sep=sep)
         return p
+
+    @classmethod
+    def getcwd(cls):
+        return cls(_os.getcwd())
+
+    @classmethod
+    def getcwdu(cls):
+        return cls(_os.getcwdu())
+
+    @staticmethod
+    def glob(pattern):
+        return [Path(p) for p in native_glob(pattern)]
+
+    @staticmethod
+    def listdir(dir):
+        return [Path(p) for p in _os.listdir(dir)]
+
 
 methods = {}
 
@@ -147,8 +164,8 @@ def __new__(cls, string='', sep=None):
         string = string.replace(system_sep, SEP)
     if string == '.':
         string = './'
-    elif string == '..':
-        string = '../'
+    elif string == '..' or string.endswith('/..'):
+        string += '/'
     string = string.rstrip('.')
     sep = SEP
     if string[:2] == sep+sep:           # usually '//'
@@ -435,16 +452,6 @@ def format_map(self, other):
     raise AttributeError("'Path' object has no attribute 'format_map'")
 methods['format_map'] = format_map
 del format_map
-
-def getcwd(cls):
-    return cls(_os.getcwd())
-methods['getcwd'] = classmethod(getcwd)
-del getcwd
-
-def getcwdu(cls):
-    return cls(_os.getcwdu())
-methods['getcwdu'] = classmethod(getcwdu)
-del getcwdu
 
 def glob(self, pattern=''):
     return [Path(p) for p in native_glob(self + pattern)]
