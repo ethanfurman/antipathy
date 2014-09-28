@@ -45,7 +45,7 @@ system_sep = _os.path.sep
 
 pyver = float('%s.%s' % _sys.version_info[:2])
 
-version = 0, 77, 0
+version = 0, 77, 1
 
 class Path(object):
     """\
@@ -465,8 +465,11 @@ def endswith(self, suffix, start=None, end=None):
 methods['endswith'] = endswith
 del endswith
 
-def exists(self):
-    return _os.path.exists(self)
+def exists(self, file_name=None):
+    if file_name is None:
+        return _os.path.exists(self)
+    else:
+        return _os.path.exists(self/file_name)
 methods['exists'] = exists
 del exists
 
@@ -638,13 +641,11 @@ del readlink
 
 def removedirs(self, directories=None):
     if directories is None:
-        _os.removedirs(self)
+        directories = [self]
     elif isinstance(directories, (basestring, Path)):
-        for subdir in self.glob(directories):
-            _os.removedirs(subdir)
-    else:
-        for subdir in directories:
-            _os.removedirs(subdir)
+        directories = self.glob(directories)
+    for subdir in directories:
+        _os.removedirs(subdir)
 methods['removedirs'] = removedirs
 del removedirs
 
@@ -756,7 +757,7 @@ def unlink(self, files=None):
     elif isinstance(files, (basestring, Path)):
         files = self.glob(files)
     for target in files:
-        target.unlink()
+        _os.unlink(target)
 methods['unlink'] = unlink
 methods['remove'] = unlink
 del unlink
