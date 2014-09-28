@@ -40,11 +40,11 @@ Because Path is a subclass of str/unicode, it can still be passed to other funct
 """
 
 setup( name='antipathy',
-       version= '0.75.02',
+       version= '0.76.00',
        license='BSD License',
        description='oo view of file paths and names, subclassed from str/unicode',
        long_description=long_desc,
-       url='http://groups.google.com/group/python-dbase',
+       url='https://pypi.python.org/pypi/antipathy',
        py_modules=['path', 'path_test'],
        provides=['path'],
        author='Ethan Furman',

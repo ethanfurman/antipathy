@@ -150,7 +150,6 @@ class TestPath(unittest.TestCase):
         self.assertRaises(ValueError, Path, 'c:/test//file.txt')
         self.assertRaises(ValueError, Path('/backups/').__div__, Path('c:/temp/'))
         self.assertRaises(ValueError, Path('/backups/file1').__div__, Path('c:/temp/'))
-        self.assertRaises(ValueError, Path('/backups/').__mul__, Path('c:/temp/'))
         self.assertRaises(ValueError, Path('/../backups/').__mul__, Path('temp/'))
         self.assertRaises(ValueError, Path('/backups/').__mul__, Path('./../../temp/'))
         self.assertRaises(ValueError, Path('c:/backups').__sub__, Path('/backups/'))
@@ -209,10 +208,10 @@ class TestPath(unittest.TestCase):
             ('c:/','/temp/','c:/temp/'),
             ('c:/temp/','backups/','c:/temp/backups/'),
             ('c:/temp/','./backups/','c:/temp/backups/'),
-            ('c:/temp/','/backups/','c:/temp/backups/'),
+            ('c:/temp/','/backups/','c:/backups/'),
             ('c:/temp/this/./.tar','../backup/./.gz','c:/temp/backup/.tar.gz'),
-            ('c:/temp/../','/./backups/','c:/backups/'),
-            ('c:/temp/..','/./backups/','c:/backups/'),
+            ('c:/temp/../','./backups/','c:/backups/'),
+            ('c:/temp/..','./backups/','c:/backups/'),
             ('c:/temp/..','./backups/','c:/backups/'),
             ('c:/temp/..','backups/','c:/backups/'),
             ('c:/temp/this.tar','.gz','c:/temp/this.tar.gz'),
@@ -250,10 +249,6 @@ class TestPath(unittest.TestCase):
         self.assertEqual(Path('c:/temp/backups') - Path('c:/temp'), Path('/backups'))
         self.assertEqual(Path('c:/temp/backups') - Path('c:/temp/'), Path('backups'))
         self.assertEqual(Path('c:/temp/backups') - Path('c:/temp/backups'), Path(''))
-        #self.assertEqual(Path('c:/temp/backups.old') - Path('backups'), Path('c:/temp/.old'))
-        #self.assertEqual(Path('c:/temp/backups.old') - Path('.old'), Path('c:/temp/backups'))
-        #self.assertEqual(Path('c:/temp/backups.old') - Path('/temp/.old'), Path('c:backups'))
-        #self.assertEqual(Path('c:/temp/backups.old') - Path('c:backups'), Path('/temp/.old'))
         self.assertEqual(Path('c:/temp/destination.txt') - Path(''), Path('c:/temp/destination.txt'))
 
 

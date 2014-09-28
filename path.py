@@ -45,7 +45,7 @@ system_sep = _os.path.sep
 
 pyver = float('%s.%s' % _sys.version_info[:2])
 
-version = 0, 75, 2
+version = 0, 76, 0
 
 class Path(object):
     """\
@@ -70,11 +70,11 @@ class Path(object):
 
     @classmethod
     def getcwd(cls):
-        return cls(_os.getcwd())
+        return cls(_os.getcwd()) / ''
 
     @classmethod
     def getcwdu(cls):
-        return cls(_os.getcwdu())
+        return cls(_os.getcwdu()) / ''
 
     @staticmethod
     def glob(pattern):
@@ -260,14 +260,15 @@ def __mul__(self, other):
         return NotImplemented
     other = self.__class__(other)
     if other._vol:
-        raise ValueError("Cannot combine %r and %r" % (self, other))
-    vol = self._vol
-    current = self._dirs
-    next = other._dirs
-    if current and next and next[0] == SEP:
-            dirs = current + next[1:]
+        vol = other._vol
+        current = ''
     else:
-        dirs = current + next
+        vol = self._vol
+        current = self._dirs
+    next = other._dirs
+    if next and next[0] == SEP:
+        current = ''
+    dirs = current + next
     new_path = []
     for dir in dirs.split(SEP):
         if dir not in ('.','..'):
