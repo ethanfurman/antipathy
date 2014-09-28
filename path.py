@@ -45,7 +45,7 @@ system_sep = _os.path.sep
 
 pyver = float('%s.%s' % _sys.version_info[:2])
 
-version = 0, 77, 1
+version = 0, 77, 2
 
 class Path(object):
     """\
@@ -419,15 +419,20 @@ def copy(self, files, dst=None):
     thin wrapper around shutil.copy2  (files is optional)
     """
     if dst is None:
-        dst, files = files, dst
+        dst = files
+        files = [self]
+    if isinstance(files, (basestring, Path)):
+        if '*' in files or '?' in files:
+            dst = Path(dst) / ''
+        files = self.glob(files)
     else:
-        dst = Path(dst) / ''
+        try:
+            if len(files) > 1:
+                dst = Path(dst) / ''
+        except TypeError:
+            dst = Path(dst) / ''
     if isinstance(dst, self.__class__):
         dst = self.base_cls(dst)
-    if files is None:
-        files = [self]
-    elif isinstance(files, (basestring, Path)):
-        files = self.glob(files)
     for file in files:
         src = self.base_cls(file)
         _shutil.copy2(src, dst)
@@ -612,15 +617,20 @@ def move(self, files, dst=None):
     thin wrapper around shutil.move  (files is optional)
     """
     if dst is None:
-        files, dst = dst, files
-    else:
-        dst = Path(dst) / ''
-    if isinstance(dst, self.__class__):
-        dst = self.base_cls(dst)
-    if files is None:
+        dst = files
         files = [self]
     elif isinstance(files, (basestring, Path)):
+        if '*' in files or '?' in files:
+            dst = Path(dst) / ''
         files = self.glob(files)
+    else:
+        try:
+            if len(files) > 1:
+                dst = Path(dst) / ''
+        except TypeError:
+            dst = Path(dst) / ''
+    if isinstance(dst, self.__class__):
+        dst = self.base_cls(dst)
     for file in files:
         src = self.base_cls(file)
         _shutil.move(src, dst)
