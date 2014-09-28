@@ -45,7 +45,7 @@ system_sep = _os.path.sep
 
 pyver = float('%s.%s' % _sys.version_info[:2])
 
-version = 0, 76, 0
+version = 0, 77, 0
 
 class Path(object):
     """\
@@ -358,31 +358,54 @@ def __sub__(self, other):
 methods['__sub__'] = __sub__
 del __sub__
 
-def access(self, mode):
-    return _os.access(self, mode)
+def access(self, mode, file_name=None):
+    if file_name is None:
+        return _os.access(self, mode)
+    else:
+        return _os.access(self/file_name, mode)
 methods['access'] = access
 del access
 
-def chdir(self):
-    return _os.chdir(self)
+def chdir(self, subdir=None):
+    if subdir is None:
+        subdir = self
+    else:
+        subdir = self/subdir
+    _os.chdir(subdir)
+    return Path.getcwd()
 methods['chdir'] = chdir
 del(chdir)
 
 if pyver >= 2.6:
-    def chflags(flags):
-        return _os.chflags(self, flags)
+    def chflags(self, flags, files=None):
+        if files is None:
+            files = [self]
+        elif isinstance(files, (basestring, Path)):
+            files = self.glob(files)
+        for file in files:
+            _os.chflags(file, flags)
     methods['chflags'] = chflags
     del chflags
 
-def chmod(self, mode):
+def chmod(self, mode, files=None):
     "thin wrapper around os.chmod"
-    _os.chmod(self, mode)
+    if files is None:
+        files = [self]
+    elif isinstance(files, (basestring, Path)):
+        files = self.glob(files)
+    for file in files:
+        _os.chmod(file, mode)
 methods['chmod'] = chmod
 del chmod
 
-def chown(self, uid, gid):
+def chown(self, uid, gid, files=None):
     "thin wrapper around os.chown"
-    _os.chown(self, uid, gid)
+    if files is None:
+        files = [self]
+    elif isinstance(files, (basestring, Path)):
+        files = self.glob(files)
+    for file in files:
+        _os.chown(file, uid, gid)
 methods['chown'] = chown
 del chown
 
@@ -391,12 +414,23 @@ def chroot(self):
 methods['chroot'] = chroot
 del chroot
 
-def copy(self, dst):
-    'thin wrapper around shutil.copy2'
+def copy(self, files, dst=None):
+    """
+    thin wrapper around shutil.copy2  (files is optional)
+    """
+    if dst is None:
+        dst, files = files, dst
+    else:
+        dst = Path(dst) / ''
     if isinstance(dst, self.__class__):
         dst = self.base_cls(dst)
-    src = self.base_cls(self)
-    _shutil.copy2(src, dst)
+    if files is None:
+        files = [self]
+    elif isinstance(files, (basestring, Path)):
+        files = self.glob(files)
+    for file in files:
+        src = self.base_cls(file)
+        _shutil.copy2(src, dst)
 methods['copy'] = copy
 del copy
 
@@ -487,18 +521,33 @@ methods['ismount'] = ismount
 del ismount
 
 if pyver >= 2.6:
-    def lchflags(self, flags):
-        return _os.chflags(self, flags)
+    def lchflags(self, flags, files=None):
+        if files is None:
+            files = [self]
+        elif isinstance(files, (basestring, Path)):
+            files = self.glob(files)
+        for file in files:
+            _os.chflags(file, flags)
     methods['lchflags'] = lchflags
     del lchflags
 
-def lchmod(self, mode):
-    return _os.lchmod(self, mode)
+def lchmod(self, mode, files=None):
+    if files is None:
+        files = [self]
+    elif isinstance(files, (basestring, Path)):
+        files = self.glob(files)
+    for file in files:
+        _os.lchmod(file, mode)
 methods['lchmod'] = lchmod
 del lchmod
 
-def lchown(self, uid, gid):
-    return _os.lchown(self, uid, gid)
+def lchown(self, uid, gid, files=None):
+    if files is None:
+        files = [self]
+    elif isinstance(files, (basestring, Path)):
+        files = self.glob(files)
+    for file in files:
+        _os.lchown(file, uid, gid)
 methods['lchown'] = lchown
 del lchown
 
@@ -555,13 +604,23 @@ def mkdirs(self, mode=None, owner=None):
 methods['mkdirs'] = mkdirs
 del mkdirs
 
-def move(self, dst):
-    'thin wrapper around shutil.move'
+def move(self, files, dst=None):
+    """
+    thin wrapper around shutil.move  (files is optional)
+    """
+    if dst is None:
+        files, dst = dst, files
+    else:
+        dst = Path(dst) / ''
     if isinstance(dst, self.__class__):
         dst = self.base_cls(dst)
-    src = self.base_cls(self)
-    print src, dst
-    _shutil.move(src, dst)
+    if files is None:
+        files = [self]
+    elif isinstance(files, (basestring, Path)):
+        files = self.glob(files)
+    for file in files:
+        src = self.base_cls(file)
+        _shutil.move(src, dst)
 methods['move'] = move
 del move
 
@@ -577,8 +636,15 @@ def readlink(self):
 methods['readlink'] = readlink
 del readlink
 
-def removedirs(self):
-    return _os.removedirs(self)
+def removedirs(self, directories=None):
+    if directories is None:
+        _os.removedirs(self)
+    elif isinstance(directories, (basestring, Path)):
+        for subdir in self.glob(directories):
+            _os.removedirs(subdir)
+    else:
+        for subdir in directories:
+            _os.removedirs(subdir)
 methods['removedirs'] = removedirs
 del removedirs
 
@@ -606,9 +672,14 @@ def replace(self, old, new, count=None):
 methods['replace'] = replace
 del replace
 
-def rmdir(self):
+def rmdir(self, directories=None):
     'thin wrapper around os.rmdir'
-    _os.rmdir(self)
+    if directories is None:
+        directories = [self]
+    elif isinstance(directories, (basestring, Path)):
+        directions = self.glob(directories)
+    for subdir in directories:
+        _os.rmdir(subdir)
 methods['rmdir'] = rmdir
 del rmdir
 
@@ -645,8 +716,11 @@ def startswith(self, prefix, start=None, end=None):
 methods['startswith'] = startswith
 del startswith
 
-def stat(self):
-    return _os.stat(self)
+def stat(self, file_name=None):
+    if file_name is None:
+        return _os.stat(self)
+    else:
+        return _os.stat(self/file_name)
 methods['stat'] = stat
 del stat
 
@@ -675,15 +749,29 @@ def symlink(self, new_name):
 methods['symlink'] = symlink
 del symlink
 
-def unlink(self):
+def unlink(self, files=None):
     "thin wrapper around os.unlink"
-    _os.unlink(self)
+    if files is None:
+        files = [self]
+    elif isinstance(files, (basestring, Path)):
+        files = self.glob(files)
+    for target in files:
+        target.unlink()
 methods['unlink'] = unlink
 methods['remove'] = unlink
 del unlink
 
-def utime(self, times):
-    return _os.utime(self, times)
+def utime(self, files, times=None):
+    """
+    files is optional
+    """
+    if times is None:
+        times = files
+        files = [self]
+    elif isinstance(files, (basestring, Path)):
+        files = self.glob(files)
+    for file in files:
+        _os.utime(file, times)
 methods['utime'] = utime
 del utime
 
