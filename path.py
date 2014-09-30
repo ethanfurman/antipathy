@@ -45,7 +45,7 @@ system_sep = _os.path.sep
 
 pyver = float('%s.%s' % _sys.version_info[:2])
 
-version = 0, 77, 2
+version = 0, 77, 3
 
 class Path(object):
     """\
@@ -559,18 +559,28 @@ def lchown(self, uid, gid, files=None):
 methods['lchown'] = lchown
 del lchown
 
-def link(self, new_name):
-    return _os.link(self, new_name)
+def link(self, source, new_name=None):
+    'source is optional'
+    if new_name is None:
+        new_name = source
+        source = self
+    return _os.link(source, new_name)
 methods['link'] = link
 del link
 
-def listdir(self):
-    return [Path(p) for p in _os.listdir(self)]
+def listdir(self, subdir=None):
+    if subdir is None:
+        return [Path(p) for p in _os.listdir(self)]
+    else:
+        return [Path(p) for p in _os.listdir(self/subdir)]
 methods['listdir'] = listdir
 del listdir
 
-def lstat(self):
-    return _os.lstat(self)
+def lstat(self, file_name=None):
+    if file_name is None:
+        return _os.lstat(self)
+    else:
+        return _os.lstat(self/file_name)
 methods['lstat'] = lstat
 del lstat
 
