@@ -382,6 +382,8 @@ if pyver >= 2.6:
             files = [self]
         elif isinstance(files, (basestring, Path)):
             files = self.glob(files)
+        else:
+            files = [self.glob(f) for f in files]
         for file in files:
             _os.chflags(file, flags)
     methods['chflags'] = chflags
@@ -393,6 +395,8 @@ def chmod(self, mode, files=None):
         files = [self]
     elif isinstance(files, (basestring, Path)):
         files = self.glob(files)
+    else:
+        files = [self.glob(f) for f in files]
     for file in files:
         _os.chmod(file, mode)
 methods['chmod'] = chmod
@@ -404,13 +408,18 @@ def chown(self, uid, gid, files=None):
         files = [self]
     elif isinstance(files, (basestring, Path)):
         files = self.glob(files)
+    else:
+        files = [self.glob(f) for f in files]
     for file in files:
         _os.chown(file, uid, gid)
 methods['chown'] = chown
 del chown
 
-def chroot(self):
-    return _os.chroot(self)
+def chroot(self, subdir=None):
+    if subdir is None:
+        return _os.chroot(self)
+    else:
+        return _os.chroot(self/subdir)
 methods['chroot'] = chroot
 del chroot
 
@@ -419,18 +428,13 @@ def copy(self, files, dst=None):
     thin wrapper around shutil.copy2  (files is optional)
     """
     if dst is None:
-        dst = files
+        dst, files = files, None
+    if files is None:
         files = [self]
-    if isinstance(files, (basestring, Path)):
-        if '*' in files or '?' in files:
-            dst = Path(dst) / ''
+    elif isinstance(files, (basestring, Path)):
         files = self.glob(files)
     else:
-        try:
-            if len(files) > 1:
-                dst = Path(dst) / ''
-        except TypeError:
-            dst = Path(dst) / ''
+        files = [self.glob(f) for f in files]
     if isinstance(dst, self.__class__):
         dst = self.base_cls(dst)
     for file in files:
@@ -496,8 +500,12 @@ def format_map(self, other):
 methods['format_map'] = format_map
 del format_map
 
-def glob(self, pattern=''):
-    return [Path(p) for p in native_glob(self + pattern)]
+def glob(self, pattern=None):
+    if pattern is None:
+        pattern = self
+    else:
+        pattern = self/pattern
+    return [Path(p) for p in native_glob(pattern)]
 methods['glob'] = glob
 del glob
 
@@ -508,23 +516,35 @@ def index(self, sub, start=None, end=None):
 methods['index'] = index
 del index
 
-def isdir(self):
-    return _os.path.isdir(self)
+def isdir(self, name=None):
+    if name is None:
+        return _os.path.isdir(self)
+    else:
+        return _os.path.isdir(self/name)
 methods['isdir'] = isdir
 del isdir
 
-def isfile(self):
-    return _os.path.isfile(self)
+def isfile(self, name=None):
+    if name is None:
+        return _os.path.isfile(self)
+    else:
+        return _os.path.isfile(self/name)
 methods['isfile'] = isfile
 del isfile
 
-def islink(self):
-    return _os.path.islink(self)
+def islink(self, name=None):
+    if name is None:
+        return _os.path.islink(self)
+    else:
+        return _os.path.islink(self/name)
 methods['islink'] = islink
 del islink
 
-def ismount(self):
-    return _os.path.ismount(self)
+def ismount(self, name=None):
+    if name is None:
+        return _os.path.ismount(self)
+    else:
+        return _os.path.ismount(self/name)
 methods['ismount'] = ismount
 del ismount
 
@@ -534,6 +554,8 @@ if pyver >= 2.6:
             files = [self]
         elif isinstance(files, (basestring, Path)):
             files = self.glob(files)
+        else:
+            files = [self.glob(f) for f in files]
         for file in files:
             _os.chflags(file, flags)
     methods['lchflags'] = lchflags
@@ -544,6 +566,8 @@ def lchmod(self, mode, files=None):
         files = [self]
     elif isinstance(files, (basestring, Path)):
         files = self.glob(files)
+    else:
+        files = [self.glob(f) for f in files]
     for file in files:
         _os.lchmod(file, mode)
 methods['lchmod'] = lchmod
@@ -554,6 +578,8 @@ def lchown(self, uid, gid, files=None):
         files = [self]
     elif isinstance(files, (basestring, Path)):
         files = self.glob(files)
+    else:
+        files = [self.glob(f) for f in files]
     for file in files:
         _os.lchown(file, uid, gid)
 methods['lchown'] = lchown
@@ -572,6 +598,8 @@ def link(self, source, new_name=None):
     if new_name is None:
         new_name = source
         source = self
+    else:
+        source = self/source
     return _os.link(source, new_name)
 methods['link'] = link
 del link
@@ -599,56 +627,69 @@ def lstrip(self, chars=None):
 methods['lstrip'] = lstrip
 del lstrip
 
-def mkfifo(self, mode):
+def mkfifo(self, name, mode=None):
+    if mode is None:
+        mode = name
+        name = self
+    else:
+        name = self/name
     return _os.mkfifo(self, mode)
 methods['mkfifo'] = mkfifo
 del mkfifo
 
-def mkdir(self, subdir=None, mode=None, owner=None):
+def mkdir(self, subdirs=None, mode=None, owner=None):
     """
     Create a directory, setting owner if given.
     """
-    if subdir is not None and not isinstance(subdir, (basestring, Path)):
+    if subdirs is not None and not isinstance(subdirs, (basestring, Path)):
         if mode and owner:
-            raise ValueError('subdir should be a string or Path instance, not %r' % type(subdir))
+            raise ValueError('subdirs should be a string or Path instance, not %r' % type(subdirs))
         if not owner:
-            owner, mode, subdir = mode, subdir, None
+            owner, mode, subdirs = mode, subdirs, None
         else:
-            mode, subdir = subdir, None
-    if subdir is None:
-        subdir = self
+            mode, subdirs = subdirs, None
+    if subdirs is None:
+        subdirs = [self]
+    elif isinstance(subdirs, (basestring, Path)):
+        subdirs = self.glob(subdirs)
     else:
-        subdir = self/subdir
+        subdirs = [self.glob(d) for d in subdirs]
     if mode is None:
-        _os.mkdir(subdir)
+        for subdir in subdirs:
+            _os.mkdir(subdir)
     else:
-        _os.mkdir(subdir, mode)
+        for subdir in subdirs:
+            _os.mkdir(subdir, mode)
     if owner is not None:
-        _os.chown(subdir, *owner)
+        for subdir in subdirs:
+            _os.chown(subdir, *owner)
 methods['mkdir'] = mkdir
 del mkdir
 
-def mkdirs(self, subdir=None, mode=None, owner=None):
+def mkdirs(self, subdirs=None, mode=None, owner=None):
     """
     Create any missing intermediate directories, setting owner if given.
     """
-    if subdir is not None and not isinstance(subdir, (basestring, Path)):
+    if subdirs is not None and not isinstance(subdirs, (basestring, Path)):
         if mode and owner:
-            raise ValueError('subdir should be a string or Path instance, not %r' % type(subdir))
+            raise ValueError('subdirs should be a string or Path instance, not %r' % type(subdirs))
         if not owner:
-            owner, mode, subdir = mode, subdir, None
+            owner, mode, subdirs = mode, subdirs, None
         else:
-            mode, subdir = subdir, None
-    if subdir is None:
-        subdir = self
+            mode, subdirs = subdirs, None
+    if subdirs is None:
+        subdirs = [self]
+    elif isinstance(subdirs, (basestring, Path)):
+        subdirs = self.glob(subdirs)
     else:
-        subdir = self/subdir
-    path = subdir.vol
-    elements = subdir.elements
-    for dir in elements:
-        path /= dir
-        if not path.exists():
-            path.mkdir(mode, owner)
+        subdirs = [self.glob(d) for d in subdirs]
+    for subdir in subdirs:
+        path = subdir.vol
+        elements = subdir.elements
+        for dir in elements:
+            path /= dir
+            if not path.exists():
+                path.mkdir(mode, owner)
 methods['mkdirs'] = mkdirs
 del mkdirs
 
@@ -657,18 +698,13 @@ def move(self, files, dst=None):
     thin wrapper around shutil.move  (files is optional)
     """
     if dst is None:
-        dst = files
+        dst, files = files, None
+    if files is None:
         files = [self]
     elif isinstance(files, (basestring, Path)):
-        if '*' in files or '?' in files:
-            dst = Path(dst) / ''
         files = self.glob(files)
     else:
-        try:
-            if len(files) > 1:
-                dst = Path(dst) / ''
-        except TypeError:
-            dst = Path(dst) / ''
+        files = [self.glob(f) for f in files]
     if isinstance(dst, self.__class__):
         dst = self.base_cls(dst)
     for file in files:
@@ -694,22 +730,34 @@ def removedirs(self, directories=None):
         directories = [self]
     elif isinstance(directories, (basestring, Path)):
         directories = self.glob(directories)
+    else:
+        directories = [self.glob(d) for d in directories]
     for subdir in directories:
         _os.removedirs(subdir)
 methods['removedirs'] = removedirs
 del removedirs
 
-def rename(self, dst):
+def rename(self, file_name, dst=None):
     'thin wrapper around os.rename)'
+    if dst is None:
+        dst = file_name
+        file_name = self
+    else:
+        file_name = self/file_name
     if isinstance(dst, self.__class__):
         dst = self.base_cls(dst)
-    src = self.base_cls(self)
+    src = self.base_cls(file_name)
     _os.rename(src, dst)
 methods['rename'] = rename
 del rename
 
-def renames(self, dst):
-    return _os.renames(self, dst)
+def renames(self, file_name, dst=None):
+    if dst is None:
+        dst = file_name
+        file_name = self
+    else:
+        file_name = self/file_name
+    return _os.renames(file_name, dst)
 methods['renames'] = renames
 del renames
 
@@ -729,20 +777,36 @@ def rmdir(self, directories=None):
         directories = [self]
     elif isinstance(directories, (basestring, Path)):
         directions = self.glob(directories)
+    else:
+        directories = [self.glob(d) for d in directories]
     for subdir in directories:
         _os.rmdir(subdir)
 methods['rmdir'] = rmdir
 del rmdir
 
-def rmtree(self, ignore_errors=None, onerror=None):
+def rmtree(self, subdirs=None, ignore_errors=None, onerror=None):
     'thin wrapper around shutil.rmtree'
-    target = self.base_cls(self)
-    if ignore_errors is None and onerror is None:
-        _shutil.rmtree(target)
-    elif ignore_errors is not None and onerror is None:
-        _shutil.rmtree(target, ignore_errors)
-    elif onerror is not None:
-        _shutil.rmtree(target, ignore_errors, onerror)
+    if subdirs is not None and not isinstance(subdirs, (basestring, Path)):
+        if ignore_errors and onerror:
+            raise ValueError('subdirs should be a string or Path instance, not %r' % type(subdirs))
+        if not onerror:
+            onerror, ignore_errors, subdirs = ignore_errors, subdirs, None
+        else:
+            ignore_errors, subdirs = subdirs, None
+    if subdirs is None:
+        subdirs = [self]
+    elif isinstance(subdirs, (basestring, Path)):
+        subdirs = self.glob(subdirs)
+    else:
+        subdirs = [self.glob(d) for d in subdirs]
+    for target in subdirs:
+        target = self.base_cls(self)
+        if ignore_errors is None and onerror is None:
+            _shutil.rmtree(target)
+        elif ignore_errors is not None and onerror is None:
+            _shutil.rmtree(target, ignore_errors)
+        elif onerror is not None:
+            _shutil.rmtree(target, ignore_errors, onerror)
 methods['rmtree'] = rmtree
 del rmtree
 
@@ -795,8 +859,13 @@ def strip_ext(self, remove=1):
 methods['strip_ext'] = strip_ext 
 del strip_ext
 
-def symlink(self, new_name):
-    return _os.symlink(self, new_name)
+def symlink(self, source, new_name=None):
+    if new_name is None:
+        new_name = source
+        source = self
+    else:
+        source = self/source
+    return _os.symlink(source, new_name)
 methods['symlink'] = symlink
 del symlink
 
@@ -806,6 +875,8 @@ def unlink(self, files=None):
         files = [self]
     elif isinstance(files, (basestring, Path)):
         files = self.glob(files)
+    else:
+        files = [self.glob(f) for f in files]
     for target in files:
         _os.unlink(target)
 methods['unlink'] = unlink
@@ -821,6 +892,8 @@ def utime(self, files, times=None):
         files = [self]
     elif isinstance(files, (basestring, Path)):
         files = self.glob(files)
+    else:
+        files = [self.glob(f) for f in files]
     for file in files:
         _os.utime(file, times)
 methods['utime'] = utime
