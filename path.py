@@ -559,6 +559,14 @@ def lchown(self, uid, gid, files=None):
 methods['lchown'] = lchown
 del lchown
 
+def lexists(self, file_name=None):
+    if file_name is None:
+        return _os.path.lexists(self)
+    else:
+        return _os.path.lexists(self/file_name)
+methods['lexists'] = lexists
+del lexists
+
 def link(self, source, new_name=None):
     'source is optional'
     if new_name is None:
