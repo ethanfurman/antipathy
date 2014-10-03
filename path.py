@@ -45,7 +45,7 @@ system_sep = _os.path.sep
 
 pyver = float('%s.%s' % _sys.version_info[:2])
 
-version = 0, 77, 3
+version = 0, 77, 4
 
 class Path(object):
     """\
