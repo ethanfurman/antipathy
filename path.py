@@ -596,25 +596,47 @@ def mkfifo(self, mode):
 methods['mkfifo'] = mkfifo
 del mkfifo
 
-def mkdir(self, mode=None, owner=None):
+def mkdir(self, subdir=None, mode=None, owner=None):
     """
     Create a directory, setting owner if given.
     """
-    if mode is None:
-        _os.mkdir(self)
+    if subdir is not None and not isinstance(subdir, (basestring, Path)):
+        if mode and owner:
+            raise ValueError('subdir should be a string or Path instance, not %r' % type(subdir))
+        if not owner:
+            owner, mode, subdir = mode, subdir, None
+        else:
+            mode, subdir = subdir, None
+    if subdir is None:
+        subdir = self
     else:
-        _os.mkdir(self, mode)
+        subdir = self/subdir
+    if mode is None:
+        _os.mkdir(subdir)
+    else:
+        _os.mkdir(subdir, mode)
     if owner is not None:
-        _os.chown(self, *owner)
+        _os.chown(subdir, *owner)
 methods['mkdir'] = mkdir
 del mkdir
 
-def mkdirs(self, mode=None, owner=None):
+def mkdirs(self, subdir=None, mode=None, owner=None):
     """
     Create any missing intermediate directories, setting owner if given.
     """
-    path = self.vol
-    elements = self.elements
+    if subdir is not None and not isinstance(subdir, (basestring, Path)):
+        if mode and owner:
+            raise ValueError('subdir should be a string or Path instance, not %r' % type(subdir))
+        if not owner:
+            owner, mode, subdir = mode, subdir, None
+        else:
+            mode, subdir = subdir, None
+    if subdir is None:
+        subdir = self
+    else:
+        subdir = self/subdir
+    path = subdir.vol
+    elements = subdir.elements
     for dir in elements:
         path /= dir
         if not path.exists():
