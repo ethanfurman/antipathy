@@ -651,7 +651,7 @@ def mkdir(self, subdirs=None, mode=None, owner=None):
     if subdirs is None:
         subdirs = [self]
     elif isinstance(subdirs, (basestring, Path)):
-        subdirs = self.glob(subdirs)
+        subdirs = [self/subdirs]
     else:
         subdirs = [d for ds in subdirs for d in self.glob(ds)]
     if mode is None:
@@ -680,7 +680,7 @@ def mkdirs(self, subdirs=None, mode=None, owner=None):
     if subdirs is None:
         subdirs = [self]
     elif isinstance(subdirs, (basestring, Path)):
-        subdirs = self.glob(subdirs)
+        subdirs = self/subdirs
     else:
         subdirs = [d for ds in subdirs for d in self.glob(ds)]
     for subdir in subdirs:
