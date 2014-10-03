@@ -383,7 +383,7 @@ if pyver >= 2.6:
         elif isinstance(files, (basestring, Path)):
             files = self.glob(files)
         else:
-            files = [self.glob(f) for f in files]
+            files = [f for fs in files for f in self.glob(fs)]
         for file in files:
             _os.chflags(file, flags)
     methods['chflags'] = chflags
@@ -396,7 +396,7 @@ def chmod(self, mode, files=None):
     elif isinstance(files, (basestring, Path)):
         files = self.glob(files)
     else:
-        files = [self.glob(f) for f in files]
+        files = [f for fs in files for f in self.glob(fs)]
     for file in files:
         _os.chmod(file, mode)
 methods['chmod'] = chmod
@@ -409,7 +409,7 @@ def chown(self, uid, gid, files=None):
     elif isinstance(files, (basestring, Path)):
         files = self.glob(files)
     else:
-        files = [self.glob(f) for f in files]
+        files = [f for fs in files for f in self.glob(fs)]
     for file in files:
         _os.chown(file, uid, gid)
 methods['chown'] = chown
@@ -434,7 +434,7 @@ def copy(self, files, dst=None):
     elif isinstance(files, (basestring, Path)):
         files = self.glob(files)
     else:
-        files = [self.glob(f) for f in files]
+        files = [f for fs in files for f in self.glob(fs)]
     if isinstance(dst, self.__class__):
         dst = self.base_cls(dst)
     for file in files:
@@ -555,7 +555,7 @@ if pyver >= 2.6:
         elif isinstance(files, (basestring, Path)):
             files = self.glob(files)
         else:
-            files = [self.glob(f) for f in files]
+            files = [f for fs in files for f in self.glob(fs)]
         for file in files:
             _os.chflags(file, flags)
     methods['lchflags'] = lchflags
@@ -567,7 +567,7 @@ def lchmod(self, mode, files=None):
     elif isinstance(files, (basestring, Path)):
         files = self.glob(files)
     else:
-        files = [self.glob(f) for f in files]
+        files = [f for fs in files for f in self.glob(fs)]
     for file in files:
         _os.lchmod(file, mode)
 methods['lchmod'] = lchmod
@@ -579,7 +579,7 @@ def lchown(self, uid, gid, files=None):
     elif isinstance(files, (basestring, Path)):
         files = self.glob(files)
     else:
-        files = [self.glob(f) for f in files]
+        files = [f for fs in files for f in self.glob(fs)]
     for file in files:
         _os.lchown(file, uid, gid)
 methods['lchown'] = lchown
@@ -653,7 +653,7 @@ def mkdir(self, subdirs=None, mode=None, owner=None):
     elif isinstance(subdirs, (basestring, Path)):
         subdirs = self.glob(subdirs)
     else:
-        subdirs = [self.glob(d) for d in subdirs]
+        subdirs = [d for ds in subdirs for d in self.glob(ds)]
     if mode is None:
         for subdir in subdirs:
             _os.mkdir(subdir)
@@ -682,7 +682,7 @@ def mkdirs(self, subdirs=None, mode=None, owner=None):
     elif isinstance(subdirs, (basestring, Path)):
         subdirs = self.glob(subdirs)
     else:
-        subdirs = [self.glob(d) for d in subdirs]
+        subdirs = [d for ds in subdirs for d in self.glob(ds)]
     for subdir in subdirs:
         path = subdir.vol
         elements = subdir.elements
@@ -704,7 +704,7 @@ def move(self, files, dst=None):
     elif isinstance(files, (basestring, Path)):
         files = self.glob(files)
     else:
-        files = [self.glob(f) for f in files]
+        files = [f for fs in files for f in self.glob(fs)]
     if isinstance(dst, self.__class__):
         dst = self.base_cls(dst)
     for file in files:
@@ -725,14 +725,14 @@ def readlink(self):
 methods['readlink'] = readlink
 del readlink
 
-def removedirs(self, directories=None):
-    if directories is None:
-        directories = [self]
-    elif isinstance(directories, (basestring, Path)):
-        directories = self.glob(directories)
+def removedirs(self, subdirs=None):
+    if subdirs is None:
+        subdirs = [self]
+    elif isinstance(subdirs, (basestring, Path)):
+        subdirs = self.glob(subdirs)
     else:
-        directories = [self.glob(d) for d in directories]
-    for subdir in directories:
+        subdirs = [d for ds in subdirs for d in self.glob(ds)]
+    for subdir in subdirs:
         _os.removedirs(subdir)
 methods['removedirs'] = removedirs
 del removedirs
@@ -771,15 +771,15 @@ def replace(self, old, new, count=None):
 methods['replace'] = replace
 del replace
 
-def rmdir(self, directories=None):
+def rmdir(self, subdirs=None):
     'thin wrapper around os.rmdir'
-    if directories is None:
-        directories = [self]
-    elif isinstance(directories, (basestring, Path)):
-        directions = self.glob(directories)
+    if subdirs is None:
+        subdirs = [self]
+    elif isinstance(subdirs, (basestring, Path)):
+        directions = self.glob(subdirs)
     else:
-        directories = [self.glob(d) for d in directories]
-    for subdir in directories:
+        subdirs = [d for ds in subdirs for d in self.glob(ds)]
+    for subdir in subdirs:
         _os.rmdir(subdir)
 methods['rmdir'] = rmdir
 del rmdir
@@ -798,7 +798,7 @@ def rmtree(self, subdirs=None, ignore_errors=None, onerror=None):
     elif isinstance(subdirs, (basestring, Path)):
         subdirs = self.glob(subdirs)
     else:
-        subdirs = [self.glob(d) for d in subdirs]
+        subdirs = [d for ds in subdirs for d in self.glob(ds)]
     for target in subdirs:
         target = self.base_cls(self)
         if ignore_errors is None and onerror is None:
@@ -876,7 +876,7 @@ def unlink(self, files=None):
     elif isinstance(files, (basestring, Path)):
         files = self.glob(files)
     else:
-        files = [self.glob(f) for f in files]
+        files = [f for fs in files for f in self.glob(fs)]
     for target in files:
         _os.unlink(target)
 methods['unlink'] = unlink
@@ -893,7 +893,7 @@ def utime(self, files, times=None):
     elif isinstance(files, (basestring, Path)):
         files = self.glob(files)
     else:
-        files = [self.glob(f) for f in files]
+        files = [f for fs in files for f in self.glob(fs)]
     for file in files:
         _os.utime(file, times)
 methods['utime'] = utime
