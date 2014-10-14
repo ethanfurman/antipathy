@@ -150,11 +150,6 @@ def iter_dirs(self):
 methods['iter_dirs'] = iter_dirs
 del iter_dirs
 
-def base_cls(self):
-    return self.__class__.__base__
-methods['base_cls'] = property(base_cls)
-del base_cls
-
 def __new__(cls, string='', sep=None):
     new_cls = cls.__bases__[1]  # either str or unicode
     vol = dirs = filename = base = ext = new_cls()
@@ -358,11 +353,13 @@ def __sub__(self, other):
 methods['__sub__'] = __sub__
 del __sub__
 
-def access(self, mode, file_name=None):
-    if file_name is None:
-        return _os.access(self, mode)
+def access(self, file_name, mode=None):
+    if mode is None:
+        mode = file_name
+        file_name = self
     else:
-        return _os.access(self/file_name, mode)
+        file_name = self/file_name
+    return _os.access(file_name, mode)
 methods['access'] = access
 del access
 
@@ -713,6 +710,27 @@ def move(self, files, dst=None):
 methods['move'] = move
 del move
 
+def open(self, file_name=None, mode=None, buffering=None):
+    if isinstance(mode, (int, long)):
+        if buffering is not None:
+            raise ValueError('buffering specified by name and position? [mode=%r, buffering=%r]' % (mode, buffering))
+        buffering, mode = mode, None
+    if file_name is not None and not isinstance(file_name, Path) and file_name.rstrip('r').rstrip('U') in ('r','w','a','r+','w+','a+'):
+        if mode is None:
+            mode, file_name = file_name, None
+    if file_name is None:
+        file_name = self
+    else:
+        file_name = self/file_name
+    if mode is None:
+        mode = 'r'
+    if buffering is None:
+        return open(file_name, mode)
+    else:
+        return open(file_name, mode, buffering)
+methods['open'] = open
+del open
+
 def pathconf(self, name):
     return _os.pathconf(self, name)
 methods['pathconf'] = pathconf
@@ -776,7 +794,7 @@ def rmdir(self, subdirs=None):
     if subdirs is None:
         subdirs = [self]
     elif isinstance(subdirs, (basestring, Path)):
-        directions = self.glob(subdirs)
+        subdirs = self.glob(subdirs)
     else:
         subdirs = [d for ds in subdirs for d in self.glob(ds)]
     for subdir in subdirs:
@@ -800,7 +818,7 @@ def rmtree(self, subdirs=None, ignore_errors=None, onerror=None):
     else:
         subdirs = [d for ds in subdirs for d in self.glob(ds)]
     for target in subdirs:
-        target = self.base_cls(self)
+        target = self.base_cls(target)
         if ignore_errors is None and onerror is None:
             _shutil.rmtree(target)
         elif ignore_errors is not None and onerror is None:
@@ -918,8 +936,11 @@ else:
 methods['walk'] = walk
 del walk
 
+methods['base_cls'] = str
 sPath = type('sPath', (Path, str), methods)
+methods['base_cls'] = unicode
 uPath = type('uPath', (Path, unicode), methods)
+del methods
 
 def glob(pattern):
     return [Path(p) for p in native_glob(pattern)]
