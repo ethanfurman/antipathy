@@ -56,9 +56,9 @@ class Path(object):
     ext   = .part1.ext
     """
 
-    def __new__(cls, string=None, sep=None):
-        if string is None:
-            raise ValueError("no path specified")
+    def __new__(cls, string='', sep=None):
+        # if string is None:
+        #     raise ValueError("no path specified")
         if isinstance(string, cls):
             return string
         if isinstance(string, str):
