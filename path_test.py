@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import unittest
 import platform
@@ -6,10 +7,153 @@ from path import Path
 
 IS_WIN = platform.platform().startswith('Windows')
 
-print path.__file__
+print(path.__file__)
 
 class TestPath(unittest.TestCase):
+
     test_paths = (
+        ("/temp/place/somefile.abc.xyz", 
+            '/temp/place/somefile.abc.xyz', '', '/temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
+        ("/temp/place/somefile.abc.", 
+            '/temp/place/somefile.abc.', '', '/temp/place/', 'somefile.abc.', 'somefile.abc', '.'),
+        ("/temp/place/somefile.abc", 
+            '/temp/place/somefile.abc', '', '/temp/place/', 'somefile.abc', 'somefile', '.abc'),
+        ("/temp/place/somefile.", 
+            '/temp/place/somefile.', '', '/temp/place/', 'somefile.', 'somefile', '.'),
+        ("/temp/place/somefile", 
+            '/temp/place/somefile', '', '/temp/place/', 'somefile', 'somefile', ''),
+        ("/temp/place/", 
+            '/temp/place/', '', '/temp/place/', '', '', ''),
+        ("/.xyz", 
+            '/.xyz', '', '/', '.xyz', '', '.xyz'),
+        ("/temp/.xyz", 
+            '/temp/.xyz', '', '/temp/', '.xyz', '', '.xyz'),
+        (".xyz", 
+            '.xyz', '', '', '.xyz', '', '.xyz'),
+        ("temp/place/somefile.abc.xyz", 
+            'temp/place/somefile.abc.xyz', '', 'temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
+        ("temp/place/somefile.abc.", 
+            'temp/place/somefile.abc.', '', 'temp/place/', 'somefile.abc.', 'somefile.abc', '.'),
+        ("temp/place/somefile.abc", 
+            'temp/place/somefile.abc', '', 'temp/place/', 'somefile.abc', 'somefile', '.abc'),
+        ("temp/place/somefile.", 
+            'temp/place/somefile.', '', 'temp/place/', 'somefile.', 'somefile', '.'),
+        ("temp/place/somefile", 
+            'temp/place/somefile', '', 'temp/place/', 'somefile', 'somefile', ''),
+        ("temp/place/", 
+            'temp/place/', '', 'temp/place/', '', '', ''),
+        (".xyz", 
+            '.xyz', '', '', '.xyz', '', '.xyz'),
+        ("temp/.xyz", 
+            'temp/.xyz', '', 'temp/', '.xyz', '', '.xyz'),
+        ("//peer/share/temp/.xyz", 
+                '//peer/share/temp/.xyz', '//peer/share', '/temp/', '.xyz', '', '.xyz'),
+        ("/", 
+            '/', '', '/', '', '', ''),
+        (".",
+            '.', '', '.', '', '', ''),
+        ("..",
+            '..', '', '..', '', '', ''),
+        )
+
+    test_posix_paths = (
+        ("c:\\temp\\place\\somefile.abc.xyz", 
+            'c:\\temp\\place\\somefile.abc.xyz', '', '', 'c:\\temp\\place\\somefile.abc.xyz', 'c:\\temp\\place\\somefile.abc', '.xyz'),
+        ("c:\\temp\\place\\somefile.abc.", 
+            'c:\\temp\\place\\somefile.abc.', '', '', 'c:\\temp\\place\\somefile.abc.', 'c:\\temp\\place\\somefile.abc', '.'),
+        ("c:\\temp\\place\\somefile.abc", 
+            'c:\\temp\\place\\somefile.abc', '', '', 'c:\\temp\\place\\somefile.abc', 'c:\\temp\\place\\somefile', '.abc'),
+        ("c:\\temp\\place\\somefile.", 
+            'c:\\temp\\place\\somefile.', '', '', 'c:\\temp\\place\\somefile.', 'c:\\temp\\place\\somefile', '.'),
+        ("c:\\temp\\place\\somefile", 
+            'c:\\temp\\place\\somefile', '', '', 'c:\\temp\\place\\somefile', 'c:\\temp\\place\\somefile', ''),
+        ("c:\\temp\\place\\", 
+            'c:\\temp\\place\\', '', '', 'c:\\temp\\place\\', 'c:\\temp\\place\\', ''),
+        ("c:\\.xyz", 
+            'c:\\.xyz', '', '', 'c:\\.xyz', 'c:\\', '.xyz'),
+        ("c:\\temp\\.xyz", 
+            'c:\\temp\\.xyz', '', '', 'c:\\temp\\.xyz', 'c:\\temp\\', '.xyz'),
+        ("c:temp\\place\\somefile.abc.xyz", 
+            'c:temp\\place\\somefile.abc.xyz', '', '', 'c:temp\\place\\somefile.abc.xyz', 'c:temp\\place\\somefile.abc', '.xyz'),
+        ("c:temp\\place\\somefile.abc.", 
+            'c:temp\\place\\somefile.abc.', '', '', 'c:temp\\place\\somefile.abc.', 'c:temp\\place\\somefile.abc', '.'),
+        ("c:temp\\place\\somefile.abc", 
+            'c:temp\\place\\somefile.abc', '', '', 'c:temp\\place\\somefile.abc', 'c:temp\\place\\somefile', '.abc'),
+        ("c:temp\\place\\somefile.", 
+            'c:temp\\place\\somefile.', '', '', 'c:temp\\place\\somefile.', 'c:temp\\place\\somefile', '.'),
+        ("c:temp\\place\\somefile", 
+            'c:temp\\place\\somefile', '', '', 'c:temp\\place\\somefile', 'c:temp\\place\\somefile', ''),
+        ("c:temp\\place\\", 
+            'c:temp\\place\\', '', '', 'c:temp\\place\\', 'c:temp\\place\\', ''),
+        ("c:.xyz", 
+            'c:.xyz', '', '', 'c:.xyz', 'c:', '.xyz'),
+        ("c:temp\\.xyz", 
+            'c:temp\\.xyz', '', '', 'c:temp\\.xyz', 'c:temp\\', '.xyz'),
+        ("\\temp\\place\\somefile.abc.xyz", 
+            '\\temp\\place\\somefile.abc.xyz', '', '', '\\temp\\place\\somefile.abc.xyz', '\\temp\\place\\somefile.abc', '.xyz'),
+        ("\\temp\\place\\somefile.abc.", 
+            '\\temp\\place\\somefile.abc.', '', '', '\\temp\\place\\somefile.abc.', '\\temp\\place\\somefile.abc', '.'),
+        ("\\temp\\place\\somefile.abc", 
+            '\\temp\\place\\somefile.abc', '', '', '\\temp\\place\\somefile.abc', '\\temp\\place\\somefile', '.abc'),
+        ("\\temp\\place\\somefile.", 
+            '\\temp\\place\\somefile.', '', '', '\\temp\\place\\somefile.', '\\temp\\place\\somefile', '.'),
+        ("\\temp\\place\\somefile", 
+            '\\temp\\place\\somefile', '', '', '\\temp\\place\\somefile', '\\temp\\place\\somefile', ''),
+        ("\\temp\\place\\", 
+            '\\temp\\place\\', '', '', '\\temp\\place\\', '\\temp\\place\\', ''),
+        ("\\.xyz", 
+            '\\.xyz', '', '', '\\.xyz', '\\', '.xyz'),
+        ("\\temp\\.xyz", 
+            '\\temp\\.xyz', '', '', '\\temp\\.xyz', '\\temp\\', '.xyz'),
+        ("temp\\place\\somefile.abc.xyz", 
+            'temp\\place\\somefile.abc.xyz', '', '', 'temp\\place\\somefile.abc.xyz', 'temp\\place\\somefile.abc', '.xyz'),
+        ("temp\\place\\somefile.abc.", 
+            'temp\\place\\somefile.abc.', '', '', 'temp\\place\\somefile.abc.', 'temp\\place\\somefile.abc', '.'),
+        ("temp\\place\\somefile.abc", 
+            'temp\\place\\somefile.abc', '', '', 'temp\\place\\somefile.abc', 'temp\\place\\somefile', '.abc'),
+        ("temp\\place\\somefile.", 
+            'temp\\place\\somefile.', '', '', 'temp\\place\\somefile.', 'temp\\place\\somefile', '.'),
+        ("temp\\place\\somefile", 
+            'temp\\place\\somefile', '', '', 'temp\\place\\somefile', 'temp\\place\\somefile', ''),
+        ("temp\\place\\", 
+            'temp\\place\\', '', '', 'temp\\place\\', 'temp\\place\\', ''),
+        ("temp\\.xyz", 
+            'temp\\.xyz', '', '', 'temp\\.xyz', 'temp\\', '.xyz'),
+
+        ("c:/temp/place/somefile.abc.xyz", 
+            'c:/temp/place/somefile.abc.xyz', '', 'c:/temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
+        ("c:/temp/place/somefile.abc.", 
+            'c:/temp/place/somefile.abc.', '', 'c:/temp/place/', 'somefile.abc.', 'somefile.abc', '.'),
+        ("c:/temp/place/somefile.abc", 
+            'c:/temp/place/somefile.abc', '', 'c:/temp/place/', 'somefile.abc', 'somefile', '.abc'),
+        ("c:/temp/place/somefile.", 
+            'c:/temp/place/somefile.', '', 'c:/temp/place/', 'somefile.', 'somefile', '.'),
+        ("c:/temp/place/somefile", 
+            'c:/temp/place/somefile', '', 'c:/temp/place/', 'somefile', 'somefile', ''),
+        ("c:/temp/place/", 
+            'c:/temp/place/', '', 'c:/temp/place/', '', '', ''),
+        ("c:/.xyz", 
+            'c:/.xyz', '', 'c:/', '.xyz', '', '.xyz'),
+        ("c:/temp/.xyz", 
+            'c:/temp/.xyz', '', 'c:/temp/', '.xyz', '', '.xyz'),
+        ("c:temp/place/somefile.abc.xyz", 
+            'c:temp/place/somefile.abc.xyz', '', 'c:temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
+        ("c:temp/place/somefile.abc.", 
+            'c:temp/place/somefile.abc.', '', 'c:temp/place/', 'somefile.abc.', 'somefile.abc', '.'),
+        ("c:temp/place/somefile.abc", 
+            'c:temp/place/somefile.abc', '', 'c:temp/place/', 'somefile.abc', 'somefile', '.abc'),
+        ("c:temp/place/somefile.", 
+            'c:temp/place/somefile.', '', 'c:temp/place/', 'somefile.', 'somefile', '.'),
+        ("c:temp/place/somefile", 
+            'c:temp/place/somefile', '', 'c:temp/place/', 'somefile', 'somefile', ''),
+        ("c:temp/place/", 
+            'c:temp/place/', '', 'c:temp/place/', '', '', ''),
+        ("c:.xyz", 
+            'c:.xyz', '', '', 'c:.xyz', 'c:', '.xyz'),
+        ("c:temp/.xyz", 
+            'c:temp/.xyz', '', 'c:temp/', '.xyz', '', '.xyz'),
+        )
+    test_win_paths = (
         ("c:\\temp\\place\\somefile.abc.xyz", 
             'c:/temp/place/somefile.abc.xyz', 'c:', '/temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
         ("c:\\temp\\place\\somefile.abc.", 
@@ -25,22 +169,6 @@ class TestPath(unittest.TestCase):
         ("c:\\.xyz", 
             'c:/.xyz', 'c:', '/', '.xyz', '', '.xyz'),
         ("c:\\temp\\.xyz", 
-            'c:/temp/.xyz', 'c:', '/temp/', '.xyz', '', '.xyz'),
-        ("c:/temp/place/somefile.abc.xyz", 
-            'c:/temp/place/somefile.abc.xyz', 'c:', '/temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
-        ("c:/temp/place/somefile.abc.", 
-            'c:/temp/place/somefile.abc', 'c:', '/temp/place/', 'somefile.abc', 'somefile', '.abc'),
-        ("c:/temp/place/somefile.abc", 
-            'c:/temp/place/somefile.abc', 'c:', '/temp/place/', 'somefile.abc', 'somefile', '.abc'),
-        ("c:/temp/place/somefile.", 
-            'c:/temp/place/somefile', 'c:', '/temp/place/', 'somefile', 'somefile', ''),
-        ("c:/temp/place/somefile", 
-            'c:/temp/place/somefile', 'c:', '/temp/place/', 'somefile', 'somefile', ''),
-        ("c:/temp/place/", 
-            'c:/temp/place/', 'c:', '/temp/place/', '', '', ''),
-        ("c:/.xyz", 
-            'c:/.xyz', 'c:', '/', '.xyz', '', '.xyz'),
-        ("c:/temp/.xyz", 
             'c:/temp/.xyz', 'c:', '/temp/', '.xyz', '', '.xyz'),
         ("c:temp\\place\\somefile.abc.xyz", 
             'c:temp/place/somefile.abc.xyz', 'c:', 'temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
@@ -58,22 +186,6 @@ class TestPath(unittest.TestCase):
             'c:.xyz', 'c:', '', '.xyz', '', '.xyz'),
         ("c:temp\\.xyz", 
             'c:temp/.xyz', 'c:', 'temp/', '.xyz', '', '.xyz'),
-        ("c:temp/place/somefile.abc.xyz", 
-            'c:temp/place/somefile.abc.xyz', 'c:', 'temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
-        ("c:temp/place/somefile.abc.", 
-            'c:temp/place/somefile.abc', 'c:', 'temp/place/', 'somefile.abc', 'somefile', '.abc'),
-        ("c:temp/place/somefile.abc", 
-            'c:temp/place/somefile.abc', 'c:', 'temp/place/', 'somefile.abc', 'somefile', '.abc'),
-        ("c:temp/place/somefile.", 
-            'c:temp/place/somefile', 'c:', 'temp/place/', 'somefile', 'somefile', ''),
-        ("c:temp/place/somefile", 
-            'c:temp/place/somefile', 'c:', 'temp/place/', 'somefile', 'somefile', ''),
-        ("c:temp/place/", 
-            'c:temp/place/', 'c:', 'temp/place/', '', '', ''),
-        ("c:.xyz", 
-            'c:.xyz', 'c:', '', '.xyz', '', '.xyz'),
-        ("c:temp/.xyz", 
-            'c:temp/.xyz', 'c:', 'temp/', '.xyz', '', '.xyz'),
         ("\\temp\\place\\somefile.abc.xyz", 
             '/temp/place/somefile.abc.xyz', '', '/temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
         ("\\temp\\place\\somefile.abc.", 
@@ -90,22 +202,6 @@ class TestPath(unittest.TestCase):
             '/.xyz', '', '/', '.xyz', '', '.xyz'),
         ("\\temp\\.xyz", 
             '/temp/.xyz', '', '/temp/', '.xyz', '', '.xyz'),
-        ("/temp/place/somefile.abc.xyz", 
-            '/temp/place/somefile.abc.xyz', '', '/temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
-        ("/temp/place/somefile.abc.", 
-            '/temp/place/somefile.abc', '', '/temp/place/', 'somefile.abc', 'somefile', '.abc'),
-        ("/temp/place/somefile.abc", 
-            '/temp/place/somefile.abc', '', '/temp/place/', 'somefile.abc', 'somefile', '.abc'),
-        ("/temp/place/somefile.", 
-            '/temp/place/somefile', '', '/temp/place/', 'somefile', 'somefile', ''),
-        ("/temp/place/somefile", 
-            '/temp/place/somefile', '', '/temp/place/', 'somefile', 'somefile', ''),
-        ("/temp/place/", 
-            '/temp/place/', '', '/temp/place/', '', '', ''),
-        ("/.xyz", 
-            '/.xyz', '', '/', '.xyz', '', '.xyz'),
-        ("/temp/.xyz", 
-            '/temp/.xyz', '', '/temp/', '.xyz', '', '.xyz'),
         ("temp\\place\\somefile.abc.xyz", 
             'temp/place/somefile.abc.xyz', '', 'temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
         ("temp\\place\\somefile.abc.", 
@@ -118,46 +214,56 @@ class TestPath(unittest.TestCase):
             'temp/place/somefile', '', 'temp/place/', 'somefile', 'somefile', ''),
         ("temp\\place\\", 
             'temp/place/', '', 'temp/place/', '', '', ''),
-        (".xyz", 
-            '.xyz', '', '', '.xyz', '', '.xyz'),
         ("temp\\.xyz", 
             'temp/.xyz', '', 'temp/', '.xyz', '', '.xyz'),
-        ("temp/place/somefile.abc.xyz", 
-            'temp/place/somefile.abc.xyz', '', 'temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
-        ("temp/place/somefile.abc.", 
-            'temp/place/somefile.abc', '', 'temp/place/', 'somefile.abc', 'somefile', '.abc'),
-        ("temp/place/somefile.abc", 
-            'temp/place/somefile.abc', '', 'temp/place/', 'somefile.abc', 'somefile', '.abc'),
-        ("temp/place/somefile.", 
-            'temp/place/somefile', '', 'temp/place/', 'somefile', 'somefile', ''),
-        ("temp/place/somefile", 
-            'temp/place/somefile', '', 'temp/place/', 'somefile', 'somefile', ''),
-        ("temp/place/", 
-            'temp/place/', '', 'temp/place/', '', '', ''),
-        (".xyz", 
-            '.xyz', '', '', '.xyz', '', '.xyz'),
-        ("temp/.xyz", 
-            'temp/.xyz', '', 'temp/', '.xyz', '', '.xyz'),
-        ("//peer/share/temp/.xyz", 
-                '//peer/share/temp/.xyz', '//peer/share', '/temp/', '.xyz', '', '.xyz'),
-        ("/", 
-            '/', '', '/', '', '', ''),
+
+        ("c:/temp/place/somefile.abc.xyz", 
+            'c:/temp/place/somefile.abc.xyz', 'c:', '/temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
+        ("c:/temp/place/somefile.abc.", 
+            'c:/temp/place/somefile.abc', 'c:', '/temp/place/', 'somefile.abc', 'somefile', '.abc'),
+        ("c:/temp/place/somefile.abc", 
+            'c:/temp/place/somefile.abc', 'c:', '/temp/place/', 'somefile.abc', 'somefile', '.abc'),
+        ("c:/temp/place/somefile.", 
+            'c:/temp/place/somefile', 'c:', '/temp/place/', 'somefile', 'somefile', ''),
+        ("c:/temp/place/somefile", 
+            'c:/temp/place/somefile', 'c:', '/temp/place/', 'somefile', 'somefile', ''),
+        ("c:/temp/place/", 
+            'c:/temp/place/', 'c:', '/temp/place/', '', '', ''),
+        ("c:/.xyz", 
+            'c:/.xyz', 'c:', '/', '.xyz', '', '.xyz'),
+        ("c:/temp/.xyz", 
+            'c:/temp/.xyz', 'c:', '/temp/', '.xyz', '', '.xyz'),
+        ("c:temp/place/somefile.abc.xyz", 
+            'c:temp/place/somefile.abc.xyz', 'c:', 'temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
+        ("c:temp/place/somefile.abc.", 
+            'c:temp/place/somefile.abc', 'c:', 'temp/place/', 'somefile.abc', 'somefile', '.abc'),
+        ("c:temp/place/somefile.abc", 
+            'c:temp/place/somefile.abc', 'c:', 'temp/place/', 'somefile.abc', 'somefile', '.abc'),
+        ("c:temp/place/somefile.", 
+            'c:temp/place/somefile', 'c:', 'temp/place/', 'somefile', 'somefile', ''),
+        ("c:temp/place/somefile", 
+            'c:temp/place/somefile', 'c:', 'temp/place/', 'somefile', 'somefile', ''),
+        ("c:temp/place/", 
+            'c:temp/place/', 'c:', 'temp/place/', '', '', ''),
+        ("c:.xyz", 
+            'c:.xyz', 'c:', '', '.xyz', '', '.xyz'),
+        ("c:temp/.xyz", 
+            'c:temp/.xyz', 'c:', 'temp/', '.xyz', '', '.xyz'),
         )
 
     def test_errors(self):
         "check errors"
         self.assertRaises(ValueError, Path, 'c://test')
         self.assertRaises(ValueError, Path, 'c:/test//file.txt')
-        self.assertRaises(ValueError, Path('/backups/').__div__, Path('c:/temp/'))
-        self.assertRaises(ValueError, Path('/backups/file1').__div__, Path('c:/temp/'))
+        self.assertRaises(ValueError, Path('/backups/').__div__, Path('//machine/share/temp/'))
+        self.assertRaises(ValueError, Path('/backups/file1').__div__, Path('//machine/share/temp/'))
         self.assertRaises(ValueError, Path('/../backups/').__mul__, Path('temp/'))
         self.assertRaises(ValueError, Path('/backups/').__mul__, Path('./../../temp/'))
         self.assertRaises(ValueError, Path('c:/backups').__sub__, Path('/backups/'))
         self.assertRaises(ValueError, Path('c:/backups/temp').__sub__, Path('backups/temp'))
         self.assertRaises(ValueError, Path('c:/backups.old/temp').__sub__, Path('temp.old'))
         self.assertRaises(ValueError, Path('c:/backups/temp').__sub__, Path('backups/temp'))
-        self.assertRaises(ValueError, Path('c:/backups/temp').__sub__, Path('backups/temp'))
-        self.assertRaises(ValueError, Path('c:/backups/temp').__sub__, Path('backups/temp'))
+        self.assertRaises(ValueError, Path('//machine/share/backups/temp').__sub__, Path('backups/temp'))
         self.assertRaises(ValueError, Path('c:/backups/temp.old').__sub__, Path('c:/backups.old'))
         self.assertRaises(AttributeError, Path('/some/path').format, 'this')
         self.assertRaises(AttributeError, Path('/some/path').format_map, 'this')
@@ -168,11 +274,7 @@ class TestPath(unittest.TestCase):
         "check file paths"
         enum = 0
         for actual, expected, vol, dirs, filename, base, ext in self.test_paths:
-            if '\\' in actual:
-                sep = '\\'
-            else:
-                sep = None
-            p = Path(actual, sep=sep)
+            p = Path(actual)
             self.assertEqual(p, expected, "failed on iter %d --> %r != %r" % (enum, p, expected))
             self.assertEqual(p.vol, vol, "failed on iter %d --> %r != %r" % (enum, p.vol, vol))
             self.assertEqual(p.dirs, dirs, "failed on iter %d --> %r != %r" % (enum, p.dirs, dirs))
@@ -180,6 +282,32 @@ class TestPath(unittest.TestCase):
             self.assertEqual(p.base, base, "failed on iter %d --> %r != %r" % (enum, p.base, base))
             self.assertEqual(p.ext,  ext, "failed on iter %d --> %r != %r" % (enum, p.ext, ext))
             enum += 1
+
+    if os.path.__name__ == 'ntpath':
+        def test_win_path(self):
+            enum = 0
+            for actual, expected, vol, dirs, filename, base, ext in self.test_win_paths:
+                p = Path(actual)
+                self.assertEqual(p, expected, "failed on iter %d --> %r != %r" % (enum, p, expected))
+                self.assertEqual(p.vol, vol, "failed on iter %d --> %r != %r" % (enum, p.vol, vol))
+                self.assertEqual(p.dirs, dirs, "failed on iter %d --> %r != %r" % (enum, p.dirs, dirs))
+                self.assertEqual(p.filename, filename, "failed on iter %d --> %r != %r" % (enum, p.filename, filename))
+                self.assertEqual(p.base, base, "failed on iter %d --> %r != %r" % (enum, p.base, base))
+                self.assertEqual(p.ext,  ext, "failed on iter %d --> %r != %r" % (enum, p.ext, ext))
+                enum += 1
+
+    if os.path.__name__ == 'posixpath':
+        def test_posix_path(self):
+            enum = 0
+            for actual, expected, vol, dirs, filename, base, ext in self.test_posix_paths:
+                p = Path(actual)
+                self.assertEqual(p, expected, "failed on iter %d --> %r != %r" % (enum, p, expected))
+                self.assertEqual(p.vol, vol, "failed on iter %d --> %r != %r" % (enum, p.vol, vol))
+                self.assertEqual(p.dirs, dirs, "failed on iter %d --> %r != %r" % (enum, p.dirs, dirs))
+                self.assertEqual(p.filename, filename, "failed on iter %d --> %r != %r" % (enum, p.filename, filename))
+                self.assertEqual(p.base, base, "failed on iter %d --> %r != %r" % (enum, p.base, base))
+                self.assertEqual(p.ext,  ext, "failed on iter %d --> %r != %r" % (enum, p.ext, ext))
+                enum += 1
 
     def test_os_path_join(self):
         "check os.path.join"
@@ -200,30 +328,84 @@ class TestPath(unittest.TestCase):
     def test_multiplication(self):
         "check path fusing"
         test_data = (
-            ('c:','/temp/','c:/temp/'),
-            ('c:','temp/','c:temp/'),
-            ('c:/','/','c:/'),
-            ('','/','/'),
-            ('c:/','temp/','c:/temp/'),
-            ('c:/','/temp/','c:/temp/'),
-            ('c:/temp/','backups/','c:/temp/backups/'),
-            ('c:/temp/','./backups/','c:/temp/backups/'),
-            ('c:/temp/','/backups/','c:/backups/'),
-            ('c:/temp/this/./.tar','../backup/./.gz','c:/temp/backup/.tar.gz'),
-            ('c:/temp/../','./backups/','c:/backups/'),
-            ('c:/temp/..','./backups/','c:/backups/'),
-            ('c:/temp/..','./backups/','c:/backups/'),
-            ('c:/temp/..','backups/','c:/backups/'),
-            ('c:/temp/this.tar','.gz','c:/temp/this.tar.gz'),
-            ('c:/temp/source','_destination','c:/temp/source_destination'),
-            ('c:/temp/destination.txt','_compressed.zip','c:/temp/destination_compressed.txt.zip'),
-            ('c:/temp/destination.txt','_copy_one','c:/temp/destination_copy_one.txt'),
-            ('//node/share','new','//node/share/new'),
+            ('', '/', '/'), 
+            ('/', '', '/'), 
+            ('/', 'temp/', '/temp/'), 
+            ('/', '/temp/', '/temp/'), 
+            ('/temp/', 'backups/', '/temp/backups/'), 
+            ('/temp/', './backups/', '/temp/backups/'), 
+            ('/temp/', '/backups/', '/backups/'), 
+            ('/temp/this/./.tar', '../backup/./.gz', '/temp/backup/.tar.gz'), 
+            ('/temp/../', './backups/', '/backups/'), 
+            ('/temp/..', './backups/', '/backups/'), 
+            ('/temp/.', '../backups/', '/backups/'), 
+            ('/temp/..', 'backups/', '/backups/'), 
+            ('/temp/this.tar', '.gz', '/temp/this.tar.gz'), 
+            ('/temp/source', '_destination', '/temp/source_destination'), 
+            ('/temp/destination.txt', '_compressed.zip', '/temp/destination_compressed.txt.zip'), 
+            ('/temp/destination.txt', '_copy_one', '/temp/destination_copy_one.txt'), 
+            ('//node/share', 'new', '//node/share/new'), 
             )
         for initial, add, result in test_data:
             start = Path(initial)
             start *= add
             self.assertEqual(start, Path(result), "%r * %r (%s) != %r" % (initial, add, start, Path(result)))
+
+    if os.path.__name__ == 'ntpath':
+        def test_multiplication(self):
+            "check path fusing"
+            test_data = (
+                ('c:','/temp/','c:/temp/'),
+                ('c:','temp/','c:temp/'),
+                ('c:/','/','c:/'),
+                ('','/','/'),
+                ('c:/','temp/','c:/temp/'),
+                ('c:/','/temp/','c:/temp/'),
+                ('c:/temp/','backups/','c:/temp/backups/'),
+                ('c:/temp/','./backups/','c:/temp/backups/'),
+                ('c:/temp/','/backups/','c:/backups/'),
+                ('c:/temp/this/./.tar','../backup/./.gz','c:/temp/backup/.tar.gz'),
+                ('c:/temp/../','./backups/','c:/backups/'),
+                ('c:/temp/..','./backups/','c:/backups/'),
+                ('c:/temp/..','./backups/','c:/backups/'),
+                ('c:/temp/..','backups/','c:/backups/'),
+                ('c:/temp/this.tar','.gz','c:/temp/this.tar.gz'),
+                ('c:/temp/source','_destination','c:/temp/source_destination'),
+                ('c:/temp/destination.txt','_compressed.zip','c:/temp/destination_compressed.txt.zip'),
+                ('c:/temp/destination.txt','_copy_one','c:/temp/destination_copy_one.txt'),
+                )
+            for initial, add, result in test_data:
+                start = Path(initial)
+                start *= add
+                self.assertEqual(start, Path(result), "%r * %r (%s) != %r" % (initial, add, start, Path(result)))
+
+    if os.path.__name__ == 'posixpath':
+        def test_posix_multiplication(self):
+            "check path fusing"
+            test_data = (
+                ('c:','/temp/','/temp/c:'),
+                ('c:','temp/','temp/c:'),
+                ('c:/','/','/'),
+                ('','/','/'),
+                ('c:/','temp/','c:/temp/'),
+                ('c:/','/temp/','/temp/'),
+                ('c:/temp/','backups/','c:/temp/backups/'),
+                ('c:/temp/','./backups/','c:/temp/backups/'),
+                ('c:/temp/','/backups/','/backups/'),
+                ('c:/temp/this/./.tar','../backup/./.gz','c:/temp/backup/.tar.gz'),
+                ('c:/temp/../','./backups/','c:/backups/'),
+                ('c:/temp/..','./backups/','c:/backups/'),
+                ('c:/temp/.','../backups/','c:/backups/'),
+                ('c:/temp/..','backups/','c:/backups/'),
+                ('c:/temp/this.tar','.gz','c:/temp/this.tar.gz'),
+                ('c:/temp/source','_destination','c:/temp/source_destination'),
+                ('c:/temp/destination.txt','_compressed.zip','c:/temp/destination_compressed.txt.zip'),
+                ('c:/temp/destination.txt','_copy_one','c:/temp/destination_copy_one.txt'),
+                )
+            for initial, add, result in test_data:
+                start = Path(initial)
+                start *= add
+                self.assertEqual(start, Path(result), "%r * %r (%s) != %r" % (initial, add, start, Path(result)))
 
     def test_division(self):
         "check path division"
@@ -240,16 +422,31 @@ class TestPath(unittest.TestCase):
 
     def test_subtraction(self):
         "check path subtraction"
-        self.assertEqual(Path('c:/temp') - Path('c:/temp'), Path(''))
-        self.assertEqual(Path('c:/temp') - Path('/temp'), Path('c:'))
-        self.assertEqual(Path('c:/temp') - Path('c:'), Path('/temp'))
-        self.assertEqual(Path('c:/temp') - Path('c:/'), Path('temp'))
-        self.assertEqual(Path('c:/temp/backups') - Path('c:'), Path('/temp/backups'))
-        self.assertEqual(Path('c:/temp/backups') - Path('c:/'), Path('temp/backups'))
-        self.assertEqual(Path('c:/temp/backups') - Path('c:/temp'), Path('/backups'))
-        self.assertEqual(Path('c:/temp/backups') - Path('c:/temp/'), Path('backups'))
-        self.assertEqual(Path('c:/temp/backups') - Path('c:/temp/backups'), Path(''))
-        self.assertEqual(Path('c:/temp/destination.txt') - Path(''), Path('c:/temp/destination.txt'))
+        self.assertEqual(Path('/temp') - Path('/temp'), Path(''))
+        self.assertEqual(Path('/temp/backups') - Path(''), Path('/temp/backups'))
+        self.assertEqual(Path('/temp/backups') - Path('/'), Path('temp/backups'))
+        self.assertEqual(Path('/temp/backups') - Path('/temp'), Path('/backups'))
+        self.assertEqual(Path('/temp/backups') - Path('/temp/'), Path('backups'))
+        self.assertEqual(Path('/temp/backups') - Path('/temp/backups'), Path(''))
+        self.assertEqual(Path('/temp/destination.txt') - Path(''), Path('/temp/destination.txt'))
+        self.assertEqual(Path('/temp/destination.txt') - Path('/temp'), Path('/destination.txt'))
+        self.assertEqual(Path('/temp/destination.txt') - Path('/temp/'), Path('destination.txt'))
+        self.assertEqual(Path('/temp/destination.txt') - Path('/temp/destination'), Path('.txt'))
+        self.assertEqual(Path('//machine/share/some/path/and/file.txt') - Path('//machine/share/some/path/'), Path('and/file.txt'))
+
+    if os.path.__name__ == 'ntpath':
+        def test_win_subtraction(self):
+            "check path subtraction"
+            self.assertEqual(Path('c:/temp') - Path('c:/temp'), Path(''))
+            self.assertEqual(Path('c:/temp') - Path('/temp'), Path('c:'))
+            self.assertEqual(Path('c:/temp') - Path('c:'), Path('/temp'))
+            self.assertEqual(Path('c:/temp') - Path('c:/'), Path('temp'))
+            self.assertEqual(Path('c:/temp/backups') - Path('c:'), Path('/temp/backups'))
+            self.assertEqual(Path('c:/temp/backups') - Path('c:/'), Path('temp/backups'))
+            self.assertEqual(Path('c:/temp/backups') - Path('c:/temp'), Path('/backups'))
+            self.assertEqual(Path('c:/temp/backups') - Path('c:/temp/'), Path('backups'))
+            self.assertEqual(Path('c:/temp/backups') - Path('c:/temp/backups'), Path(''))
+            self.assertEqual(Path('c:/temp/destination.txt') - Path(''), Path('c:/temp/destination.txt'))
 
 
 if __name__ == '__main__':
