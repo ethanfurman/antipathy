@@ -302,6 +302,8 @@ class Path(object):
         if not isinstance(other, self.basecls):
             return NotImplemented
         other = self.__class__(other)
+        if other == self._EMPTY:
+            return self
         if other._vol != self._vol:
             raise ValueError("cannot subtract %r from %r" % (other, self))
         vol = self._EMPTY

@@ -321,6 +321,7 @@ class TestPath(unittest.TestCase):
         self.assertEqual(Path('c:') + Path('/temp/'), Path('c:/temp/'))
         self.assertEqual(Path('c:/') + Path('temp/'), Path('c:/temp/'))
         self.assertEqual(Path('c:/temp/') + Path('backups/'), Path('c:/temp/backups/'))
+        self.assertEqual(Path('/usr/local/bin') + Path(''), Path('/usr/local/bin'))
 
     def test_multiplication(self):
         "check path fusing"
@@ -341,7 +342,8 @@ class TestPath(unittest.TestCase):
             ('/temp/source', '_destination', '/temp/source_destination'), 
             ('/temp/destination.txt', '_compressed.zip', '/temp/destination_compressed.txt.zip'), 
             ('/temp/destination.txt', '_copy_one', '/temp/destination_copy_one.txt'), 
-            ('//node/share', 'new', '//node/share/new'), 
+            ('//node/share', 'new', '//node/share/new'),
+            ('/var/log/app/temp/../archive', '', '/var/log/app/archive'),
             )
         for initial, add, result in test_data:
             start = Path(initial)
@@ -416,6 +418,7 @@ class TestPath(unittest.TestCase):
         self.assertEqual(Path('c:/temp/destination.txt') / Path('copy_one'), Path('c:/temp/destination.txt/copy_one'))
         self.assertEqual(Path('hello') / Path('/temp/'), Path('hello/temp/'))
         self.assertEqual(Path('') / Path('/temp/'), Path('/temp/'))
+        self.assertEqual(Path('temp') / Path(''), Path('temp/'))
 
     def test_subtraction(self):
         "check path subtraction"
@@ -430,6 +433,8 @@ class TestPath(unittest.TestCase):
         self.assertEqual(Path('/temp/destination.txt') - Path('/temp/'), Path('destination.txt'))
         self.assertEqual(Path('/temp/destination.txt') - Path('/temp/destination'), Path('.txt'))
         self.assertEqual(Path('//machine/share/some/path/and/file.txt') - Path('//machine/share/some/path/'), Path('and/file.txt'))
+        self.assertEqual(Path('/usr/local/bin') - Path(''), Path('/usr/local/bin'))
+        self.assertEqual(Path('//machine/share/some/path/and/file.txt') - Path(''), Path('//machine/share/some/path/and/file.txt'))
 
     if os.path.__name__ == 'ntpath':
         def test_win_subtraction(self):
