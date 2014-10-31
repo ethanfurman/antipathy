@@ -4,7 +4,7 @@ Copyright
     - Copyright: 2011-2014 Ethan Furman
     - Author: Ethan Furman
     - Contact: ethan@stoneleaf.us
-    - Version: 0.73.004 as of 2014-07-07
+    - Version: 0.80.00 as of 2014-10-30
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -47,6 +47,8 @@ native_glob = _glob.glob
 native_listdir = _os.listdir
 
 system_sep = _os.path.sep
+
+is_win = _os.path.__name__ == 'ntpath'
 
 py_ver = _sys.version_info[:2]
 
@@ -325,7 +327,7 @@ class Path(object):
         _os.chdir(subdir)
         return Path.getcwd()
 
-    if py_ver >= (2, 6):
+    if py_ver >= (2, 6) and not is_win:
         def chflags(self, flags, files=None):
             if files is None:
                 files = [self]
@@ -358,11 +360,12 @@ class Path(object):
         for file in files:
             _os.chown(file, uid, gid)
 
-    def chroot(self, subdir=None):
-        if subdir is None:
-            return _os.chroot(self)
-        else:
-            return _os.chroot(self/subdir)
+    if not is_win:
+        def chroot(self, subdir=None):
+            if subdir is None:
+                return _os.chroot(self)
+            else:
+                return _os.chroot(self/subdir)
 
     def copy(self, files, dst=None):
         """
@@ -461,7 +464,7 @@ class Path(object):
         else:
             return _os.path.ismount(self/name)
 
-    if py_ver >= (2, 6):
+    if py_ver >= (2, 6) and not is_win:
         def lchflags(self, flags, files=None):
             if files is None:
                 files = [self]
@@ -472,25 +475,26 @@ class Path(object):
             for file in files:
                 _os.chflags(file, flags)
 
-    def lchmod(self, mode, files=None):
-        if files is None:
-            files = [self]
-        elif isinstance(files, (self.basecls, Path)):
-            files = self.glob(files)
-        else:
-            files = [f for fs in files for f in self.glob(fs)]
-        for file in files:
-            _os.lchmod(file, mode)
+    if not is_win:
+        def lchmod(self, mode, files=None):
+            if files is None:
+                files = [self]
+            elif isinstance(files, (self.basecls, Path)):
+                files = self.glob(files)
+            else:
+                files = [f for fs in files for f in self.glob(fs)]
+            for file in files:
+                _os.lchmod(file, mode)
 
-    def lchown(self, uid, gid, files=None):
-        if files is None:
-            files = [self]
-        elif isinstance(files, (self.basecls, Path)):
-            files = self.glob(files)
-        else:
-            files = [f for fs in files for f in self.glob(fs)]
-        for file in files:
-            _os.lchown(file, uid, gid)
+        def lchown(self, uid, gid, files=None):
+            if files is None:
+                files = [self]
+            elif isinstance(files, (self.basecls, Path)):
+                files = self.glob(files)
+            else:
+                files = [f for fs in files for f in self.glob(fs)]
+            for file in files:
+                _os.lchown(file, uid, gid)
 
     def lexists(self, file_name=None):
         if file_name is None:
@@ -507,11 +511,12 @@ class Path(object):
             source = self/source
         return _os.link(source, new_name)
 
-    def listdir(self, subdir=None):
-        if subdir is None:
-            return [Path(p) for p in _os.listdir(self)]
-        else:
-            return [Path(p) for p in _os.listdir(self/subdir)]
+    if not is_win:
+        def listdir(self, subdir=None):
+            if subdir is None:
+                return [Path(p) for p in _os.listdir(self)]
+            else:
+                return [Path(p) for p in _os.listdir(self/subdir)]
 
     def lstat(self, file_name=None):
         if file_name is None:
@@ -524,13 +529,14 @@ class Path(object):
             chars = chars.replace(system_sep, self._SLASH)
         return self.__class__((self._path + self._filename).lstrip(chars))
 
-    def mkfifo(self, name, mode=None):
-        if mode is None:
-            mode = name
-            name = self
-        else:
-            name = self/name
-        return _os.mkfifo(self, mode)
+    if not is_win:
+        def mkfifo(self, name, mode=None):
+            if mode is None:
+                mode = name
+                name = self
+            else:
+                name = self/name
+            return _os.mkfifo(self, mode)
 
     def mkdir(self, subdirs=None, mode=None, owner=None):
         """
@@ -621,11 +627,12 @@ class Path(object):
         else:
             return open(file_name, mode, buffering)
 
-    pathconf = _os.pathconf
+    if not is_win:
+        pathconf = _os.pathconf
+        pathconf_names = staticmethod(_os.pathconf_names)
 
-    pathconf_names = staticmethod(_os.pathconf_names)
-
-    readlink = _os.readlink
+    if not is_win:
+        readlink = _os.readlink
 
     def removedirs(self, subdirs=None):
         if subdirs is None:
@@ -723,7 +730,8 @@ class Path(object):
         else:
             return _os.stat(self/file_name)
 
-    statvfs = _os.statvfs
+    if not is_win:
+        statvfs = _os.statvfs
 
     def strip(self, chars=None):
         if chars is not None:
@@ -736,13 +744,14 @@ class Path(object):
         ext = self._CUR_DIR.join(self._ext.split(self._CUR_DIR)[:-remove])
         return self.__class__(self._path + self._base + ext)
 
-    def symlink(self, source, new_name=None):
-        if new_name is None:
-            new_name = source
-            source = self
-        else:
-            source = self/source
-        return _os.symlink(source, new_name)
+    if not is_win:
+        def symlink(self, source, new_name=None):
+            if new_name is None:
+                new_name = source
+                source = self
+            else:
+                source = self/source
+            return _os.symlink(source, new_name)
 
     def unlink(self, files=None):
         "thin wrapper around os.unlink"

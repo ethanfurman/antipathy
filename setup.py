@@ -13,7 +13,7 @@ Is::
     >>> path, filename = os.path.split(some_name)
     >>> basename, ext = os.path.splitext(filename)
     >>> basename = basename + '_01'
-    >>> new_name = os.path.join([path, basename, ext])
+    >>> new_name = os.path.join(path, basename+ext)
 
 wearing on your nerves?
 
@@ -34,15 +34,17 @@ Then get antipathy and work with Path::
     '/home/ethan/backup/my_file_01.txt'
     >>> some_name.copy(backup)
 
-Because Path is a subclass of str/unicode, it can still be passed to other functions that expect a str/unicode object and work seamlessly.
+Because Path is a subclass of bytes/str/unicode, it can still be passed to other functions that expect a bytes/str/unicode object and work seamlessly [2].
 
 [1] https://www.google.com/#q=antipathy
+
+[2] in most cases -- there are a few places that do a `type` check instead of an `isinstance` check.
 """
 
 setup( name='antipathy',
-       version= '0.77.08',
+       version= '0.80.00',
        license='BSD License',
-       description='oo view of file paths and names, subclassed from str/unicode',
+       description='oo view of file paths and names, subclassed from bytes/str/unicode',
        long_description=long_desc,
        url='https://pypi.python.org/pypi/antipathy',
        py_modules=['path', 'path_test'],
@@ -59,6 +61,7 @@ setup( name='antipathy',
             'Programming Language :: Python :: 2.5',
             'Programming Language :: Python :: 2.6',
             'Programming Language :: Python :: 2.7',
+            'Programming Language :: Python :: 3',
             ],
     )
 
