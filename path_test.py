@@ -1,4 +1,3 @@
-from __future__ import print_function
 import os
 import unittest
 import platform
@@ -6,8 +5,6 @@ import path
 from path import Path
 
 IS_WIN = platform.platform().startswith('Windows')
-
-print(path.__file__)
 
 class TestPath(unittest.TestCase):
 
