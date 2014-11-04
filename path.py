@@ -54,6 +54,14 @@ py_ver = _sys.version_info[:2]
 
 version = 0, 80, 1
 
+class dualmethod(object):
+    def __init__(self, func):
+        self.func = func
+    def __get__(self, inst, cls=None):
+        def courier(*args, **kwds):
+            return self.func(cls, inst, *args, **kwds)
+        return courier
+
 class Path(object):
     """\
     vol = [ c: | //node/sharepoint | '' ]
@@ -100,40 +108,120 @@ class Path(object):
     def listdir(dir):
         return [Path(p) for p in _os.listdir(dir)]
 
+    @dualmethod
+    def access(cls, self, file_name, mode=None):
+        if self is None and not (file_name and mode):
+            raise TypeError('file_name and mode must be specified')
+        elif self is None:
+            self = cls(file_name)
+            file_name = None
+        if mode is None:
+            mode = file_name
+            file_name = self
+        else:
+            file_name = self/file_name
+        return _os.access(file_name, mode)
 
-class Methods(object):
+    @dualmethod
+    def chdir(cls, self, subdir=None):
+        if self is subdir is None:
+            raise TypeError('Subdirectory must be specified')
+        elif subdir is None:
+            subdir = self
+        else:
+            subdir = self/subdir
+        _os.chdir(subdir)
 
-    @property
-    def vol(self):
-        return self.__class__(self._vol)
+    if py_ver >= (2, 6) and not is_win:
+        @dualmethod
+        def chflags(cls, self, flags, files=None):
+            if self is files is None:
+                raise TypeError('files must be specified')
+            self = self or cls
+            if files is None:
+                files = [self]
+            elif isinstance(files, self.basecls):
+                files = self.glob(files)
+            else:
+                files = [f for fs in files for f in self.glob(fs)]
+            for file in files:
+                _os.chflags(file, flags)
 
-    @property
-    def dirs(self):
-        return self.__class__(self._dirs)
+    @dualmethod
+    def chmod(cls, self, mode, files=None):
+        "thin wrapper around os.chmod"
+        if self is files is None:
+            raise TypeError('mode and files must be specified')
+        self = self or cls
+        if files is None:
+            files = [self]
+        elif isinstance(files, self.basecls):
+            files = self.glob(files)
+        else:
+            files = [f for fs in files for f in self.glob(fs)]
+        for file in files:
+            _os.chmod(file, mode)
 
-    @property
-    def path(self):
-        return self.__class__(self._path)
+    @dualmethod
+    def chown(cls, self, uid, gid, files=None):
+        "thin wrapper around os.chown"
+        if self is files is None:
+            raise TypeError('owner and files must be specified')
+        self = self or cls
+        if files is None:
+            files = [self]
+        elif isinstance(files, self.basecls):
+            files = self.glob(files)
+        else:
+            files = [f for fs in files for f in self.glob(fs)]
+        for file in files:
+            _os.chown(file, uid, gid)
 
-    @property
-    def filename(self):
-        return self.__class__(self._filename)
+    if not is_win:
+        @dualmethod
+        def chroot(cls, self, subdir=None):
+            if self is subdir is None:
+                raise TypeError('subdirectory must be specified')
+            elif subdir is None:
+                return _os.chroot(self)
+            elif self is None:
+                return _os.chroot(subdir)
+            else:
+                return _os.chroot(self/subdir)
 
-    @property
-    def base(self):
-        return self.__class__(self._base)
+    @dualmethod
+    def copy(cls, self, files, dst=None):
+        """
+        thin wrapper around shutil.copy2  (files is optional)
+        """
+        if self is dst is None:
+            raise TypeError('source file(s) and destination must be specified')
+        elif dst is None:
+            dst, files = files, None
+        self = self or cls
+        if files is None:
+            files = [self]
+        elif isinstance(files, self.basecls):
+            files = self.glob(files)
+        else:
+            files = [f for fs in files for f in self.glob(fs)]
+        if isinstance(dst, self.__class__):
+            dst = self.basecls[-1](dst)
+        for file in files:
+            src = self.basecls[-1](file)
+            _shutil.copy2(src, dst)
 
-    @property
-    def ext(self):
-        return self.__class__(self._ext)
-
-    @property
-    def elements(self):
-        return list(self.iter_all())
-
-    @property
-    def dir_elements(self):
-        return list(self.iter_dirs())
+    @dualmethod
+    def exists(cls, self, file_name=None):
+        if self is None and file_name is None:
+            raise TypeError('file_name not specified')
+        elif self is None:
+            self = cls(file_name)
+            file_name = None
+        if file_name is None:
+            return _os.path.exists(self)
+        else:
+            return _os.path.exists(self/file_name)
 
     def iter_all(self):
         result = list(self.iter_dirs())
@@ -153,6 +241,9 @@ class Methods(object):
             if dirs:
                 result.extend([cls(d) for d in dirs.split(self._SLASH)])
         return iter(result)
+Path.basecls = bytes, str, unicode
+
+class Methods(object):
 
     def __new__(cls, string=''):
         base_cls = cls.basecls[1]       # bytes or unicode
@@ -196,6 +287,38 @@ class Methods(object):
         p._base = base
         p._ext = ext
         return p
+
+    @property
+    def vol(self):
+        return self.__class__(self._vol)
+
+    @property
+    def dirs(self):
+        return self.__class__(self._dirs)
+
+    @property
+    def path(self):
+        return self.__class__(self._path)
+
+    @property
+    def filename(self):
+        return self.__class__(self._filename)
+
+    @property
+    def base(self):
+        return self.__class__(self._base)
+
+    @property
+    def ext(self):
+        return self.__class__(self._ext)
+
+    @property
+    def elements(self):
+        return list(self.iter_all())
+
+    @property
+    def dir_elements(self):
+        return list(self.iter_dirs())
 
     def __add__(self, other):
         if not isinstance(other, self.basecls):
@@ -319,80 +442,6 @@ class Methods(object):
             raise ValueError("cannot subtract %r from %r" % (other, self))
         return self.__class__(vol+s[len(o):])
 
-    def access(self, file_name, mode=None):
-        if mode is None:
-            mode = file_name
-            file_name = self
-        else:
-            file_name = self/file_name
-        return _os.access(file_name, mode)
-
-    def chdir(self, subdir=None):
-        if subdir is None:
-            subdir = self
-        else:
-            subdir = self/subdir
-        _os.chdir(subdir)
-        return Path.getcwd()
-
-    if py_ver >= (2, 6) and not is_win:
-        def chflags(self, flags, files=None):
-            if files is None:
-                files = [self]
-            elif isinstance(files, self.basecls):
-                files = self.glob(files)
-            else:
-                files = [f for fs in files for f in self.glob(fs)]
-            for file in files:
-                _os.chflags(file, flags)
-
-    def chmod(self, mode, files=None):
-        "thin wrapper around os.chmod"
-        if files is None:
-            files = [self]
-        elif isinstance(files, self.basecls):
-            files = self.glob(files)
-        else:
-            files = [f for fs in files for f in self.glob(fs)]
-        for file in files:
-            _os.chmod(file, mode)
-
-    def chown(self, uid, gid, files=None):
-        "thin wrapper around os.chown"
-        if files is None:
-            files = [self]
-        elif isinstance(files, self.basecls):
-            files = self.glob(files)
-        else:
-            files = [f for fs in files for f in self.glob(fs)]
-        for file in files:
-            _os.chown(file, uid, gid)
-
-    if not is_win:
-        def chroot(self, subdir=None):
-            if subdir is None:
-                return _os.chroot(self)
-            else:
-                return _os.chroot(self/subdir)
-
-    def copy(self, files, dst=None):
-        """
-        thin wrapper around shutil.copy2  (files is optional)
-        """
-        if dst is None:
-            dst, files = files, None
-        if files is None:
-            files = [self]
-        elif isinstance(files, self.basecls):
-            files = self.glob(files)
-        else:
-            files = [f for fs in files for f in self.glob(fs)]
-        if isinstance(dst, self.__class__):
-            dst = self.basecls[-1](dst)
-        for file in files:
-            src = self.basecls[-1](file)
-            _shutil.copy2(src, dst)
-
     def copytree(self, dst, symlinks=False, ignore=None):
         'thin wrapper around shutil.copytree'
         if isinstance(dst, self.__class__):
@@ -417,12 +466,6 @@ class Methods(object):
         start = start or 0
         end = end or len(self)
         return (self._path + self._filename).endswith(new_suffix, start, end)
-
-    def exists(self, file_name=None):
-        if file_name is None:
-            return _os.path.exists(self)
-        else:
-            return _os.path.exists(self/file_name)
 
     def find(sub, start=None, end=None):
         new_sub = sub.replace(system_sep, self._SLASH)
@@ -660,8 +703,8 @@ class Methods(object):
         else:
             file_name = self/file_name
         if isinstance(dst, self.__class__):
-            dst = self.basecls(dst)
-        src = self.basecls(file_name)
+            dst = self.basecls[-1](dst)
+        src = self.basecls[-1](file_name)
         _os.rename(src, dst)
 
     def renames(self, file_name, dst=None):
