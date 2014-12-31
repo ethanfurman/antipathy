@@ -55,14 +55,6 @@ _is_win = _os.path.__name__ == 'ntpath'
 
 version = 0, 80, 1
 
-class dualmethod(object):
-    def __init__(self, func):
-        self.func = func
-    def __get__(self, inst, cls=None):
-        def courier(*args, **kwds):
-            return self.func(cls, inst, *args, **kwds)
-        return courier
-
 class Path(object):
     """\
     vol = [ c: | //node/sharepoint | '' ]
@@ -439,9 +431,12 @@ class Methods(object):
         if not isinstance(other, self.basecls):
             return NotImplemented
         other = self.__class__(other)
+        current = ''
         if other._vol:
-            raise ValueError("Cannot combine %r and %r" % (self, other))
-        current = self._path + self._filename
+            if self:
+                raise ValueError("Cannot combine %r and %r" % (self, other))
+            # current = other._vol
+        current += self._path + self._filename
         if current[-1:] == self._SLASH:
             current = current[:-1]
         next = other._dirs + other._filename
@@ -679,12 +674,23 @@ class Methods(object):
             src = self.basecls[-1](file)
             _shutil.copy2(src, dst)
 
-    def copytree(self, dst, symlinks=False, ignore=None):
-        'thin wrapper around shutil.copytree'
-        if isinstance(dst, self.__class__):
-            dst = self.basecls[-1](dst)
-        src = self.basecls[-1](self)
-        _shutil.copytree(src, dst, symlinks, ignore)
+    if _py_ver < (2, 6):
+
+        def copytree(self, dst, symlinks=False):
+            'thin wrapper around shutil.copytree'
+            if isinstance(dst, self.__class__):
+                dst = self.basecls[-1](dst)
+            src = self.basecls[-1](self)
+            _shutil.copytree(src, dst, symlinks)
+
+    else:
+
+        def copytree(self, dst, symlinks=False, ignore=None):
+            'thin wrapper around shutil.copytree'
+            if isinstance(dst, self.__class__):
+                dst = self.basecls[-1](dst)
+            src = self.basecls[-1](self)
+            _shutil.copytree(src, dst, symlinks, ignore)
 
     def count(self, sub, start=None, end=None):
         new_sub = sub.replace(self._SYS_SEP, self._SLASH)
@@ -901,7 +907,8 @@ class Methods(object):
         else:
             subdirs = [d for ds in subdirs for d in self.glob(ds)]
         for subdir in subdirs:
-            path = subdir.vol
+            # path = subdir.vol
+            path = Path()
             elements = subdir.elements
             for dir in elements:
                 path /= dir

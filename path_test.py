@@ -671,9 +671,9 @@ class TestPathFileOperations(unittest.TestCase):
         shutil.rmtree(tempdir, True)
 
     def test_access(self):
-        self.assertFalse(Path.access(self.sh_file, X_OK))
-        self.assertTrue(Path(self.project).access(X_OK))
-        self.assertTrue(Path(self.project).access('README', R_OK))
+        self.assertEqual(Path.access(self.sh_file, X_OK), os.access(self.sh_file, X_OK))
+        self.assertEqual(Path(self.project).access(X_OK), os.access(self.project, X_OK))
+        self.assertEqual(Path(self.project).access('README', R_OK), os.access(os.path.join(self.project, 'README'), R_OK))
 
     def test_chdir(self):
         current = os.getcwd()
@@ -700,7 +700,7 @@ class TestPathFileOperations(unittest.TestCase):
                     self.assertEqual(os.stat(f).st_mode, mode)
             sh = os.path.join(tempdir, '.sh')
             prior = os.stat(sh).st_mode
-            after = prior ^ 0o777
+            after = prior ^ int('777', 8)
             Path.chmod(after, sh)
             verify(after, sh)
             Path.chmod(prior, [sh])
@@ -712,8 +712,10 @@ class TestPathFileOperations(unittest.TestCase):
             Path(tempdir).chmod(after, ['.sh'])
             verify(after, sh)
 
-    def test_chown(self):
-        raise NotImplementedError
+    if hasattr(os, 'chown'):
+
+        def test_chown(self):
+            raise NotImplementedError
 
     if not is_win:
 
@@ -749,7 +751,8 @@ class TestPathFileOperations(unittest.TestCase):
         verify_binary(test_3)
         test_4 = os.path.join(tempdir, 'test_4')
         os.mkdir(test_4)
-        Path(self.project).copy('*A*', test_4)
+        Path(self.project).copy('*E', test_4)
+        Path(self.project).copy('I*', test_4)
         verify_text(test_4)
         test_5 = os.path.join(tempdir, 'test_5')
         os.mkdir(test_5)
@@ -789,6 +792,12 @@ class TestPathFileOperations(unittest.TestCase):
         self.assertFalse(Path(self.project_app).exists('haha'))
 
     def test_glob(self):
+        if is_win:
+            pattern = '*p*'
+            seeking = ['graphics', 'app']
+        else:
+            pattern = '*A*'
+            seeking = ['INSTALL', 'README']
         def verify(found, seeking):
             found = [os.path.split(f)[1] for f in found]
             self.assertEqual(set(found), set(seeking))
@@ -801,8 +810,8 @@ class TestPathFileOperations(unittest.TestCase):
                 ['LICENSE'],
                 )
         verify(
-                Path(os.path.join(self.project)).glob('*A*'),
-                ['INSTALL', 'README'],
+                Path(os.path.join(self.project)).glob(pattern),
+                seeking,
                 )
 
     def test_isdir(self):
@@ -844,7 +853,7 @@ class TestPathFileOperations(unittest.TestCase):
                     self.assertEqual(os.stat(f).st_mode, mode)
             sh = os.path.join(tempdir, '.sh')
             prior = os.stat(sh).st_mode
-            after = prior ^ 0o777
+            after = prior ^ int('777', 8)
             Path.lchmod(after, sh)
             verify(after, sh)
             Path.lchmod(prior, [sh])
@@ -887,7 +896,7 @@ class TestPathFileOperations(unittest.TestCase):
         self.assertEqual(Path(self.project).listdir(), contents)
         self.assertEqual(Path(tempdir).listdir('project'), contents)
 
-    if hasattr(os, 'lstat'):
+    if hasattr(os, 'lstat') and hasattr(os, 'symlink'):
 
         def test_lstat(self):
             sh_link = os.path.join(tempdir, 'sh_link')
