@@ -1,10 +1,10 @@
 """\
 Copyright
 =========
-    - Copyright: 2011-2014 Ethan Furman
+    - Copyright: 2011-2015 Ethan Furman
     - Author: Ethan Furman
     - Contact: ethan@stoneleaf.us
-    - Version: 0.80.00 as of 2014-10-30
+    - Version: 0.81.01 as of 2015-01-14
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -53,7 +53,7 @@ system_sep = _os.path.sep
 
 _is_win = _os.path.__name__ == 'ntpath'
 
-version = 0, 80, 2
+version = 0, 81, 1
 
 class Path(object):
     """\
