@@ -33,6 +33,6 @@ Then get antipathy and work with Path::
 Because Path is a subclass of bytes/str/unicode, it can still be passed to other functions that expect a bytes/str/unicode object and work seamlessly [2].
 
 
-Links
-    [1] https://www.google.com/#q=antipathy
-    [2] in most cases -- there are a few places that do a `type` check instead of an `isinstance` check.
+[1] https://www.google.com/#q=antipathy
+
+[2] in most cases -- there are a few places that do a `type` check instead of an `isinstance` check.
