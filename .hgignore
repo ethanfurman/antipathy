@@ -3,3 +3,6 @@ syntax: glob
 .*.swp
 *~
 .*~
+antipathy/CHANGES
+antipathy/LICENSE
+antipathy/README
