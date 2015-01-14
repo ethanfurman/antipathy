@@ -21,6 +21,7 @@ In short, are you filled with antipathy [1] for os.path?
 
 Then get antipathy and work with Path::
 
+    >>> from antipathy import Path
     >>> some_name = Path('/home/ethan/source/my_file.txt')
     >>> backups = Path('/home/ethan/backup/')
     >>> print some_name.path
@@ -42,13 +43,13 @@ Because Path is a subclass of bytes/str/unicode, it can still be passed to other
 """
 
 setup( name='antipathy',
-       version= '0.80.02',
+       version= '0.81.00',
        license='BSD License',
        description='oo view of file paths and names, subclassed from bytes/str/unicode',
        long_description=long_desc,
        url='https://pypi.python.org/pypi/antipathy',
-       py_modules=['path', 'path_test'],
-       provides=['path'],
+       packages=['antipathy', 'antipathy/test'],
+       package_data={'antipathy':['LICENSE', 'README']},
        author='Ethan Furman',
        author_email='ethan@stoneleaf.us',
        classifiers=[
