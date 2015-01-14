@@ -1,5 +1,5 @@
 antipathy/LICENSE
 antipathy/README
 antipathy/__init__.py
-antipathy/test/__init__.py
+antipathy/test.py
 setup.py
