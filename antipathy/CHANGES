@@ -1,0 +1,5 @@
+0.81.00
+=======
+
+converted from `path` module to `antipathy` package
+added CHANGES, LICENSE, and README files
