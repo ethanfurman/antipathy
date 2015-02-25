@@ -4,3 +4,6 @@ antipathy/README
 antipathy/__init__.py
 antipathy/test.py
 setup.py
+CHANGES
+LICENSE
+README
