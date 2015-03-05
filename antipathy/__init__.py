@@ -29,7 +29,7 @@ system_sep = _os.path.sep
 
 _is_win = _os.path.__name__ == 'ntpath'
 
-version = 0, 81, 4
+version = 0, 81, 5
 
 class Path(object):
     """\
