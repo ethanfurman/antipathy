@@ -183,7 +183,7 @@ class Path(object):
             for file in files:
                 Path(file).lchown(uid, gid)
 
-    if hasattr(_os, 'lexists'):
+    if hasattr(_os.path, 'lexists'):
 
         @staticmethod
         def lexists(name):
@@ -794,7 +794,7 @@ class Methods(object):
             for file in files:
                 _os.lchown(file, uid, gid)
 
-    if hasattr(_os, 'lexists'):
+    if hasattr(_os.path, 'lexists'):
 
         def lexists(self, file_name=None):
             if file_name is not None:

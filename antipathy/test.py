@@ -870,7 +870,7 @@ class TestPathFileOperations(unittest.TestCase):
         def test_lchown(self):
             raise NotImplementedError
 
-    if hasattr(os, 'lexists'):
+    if hasattr(os.path, 'lexists'):
 
         def test_lexists(self):
             self.assertTrue(Path.lexists(self.project_audio))
