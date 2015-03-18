@@ -791,6 +791,12 @@ class TestPathFileOperations(unittest.TestCase):
         self.assertTrue(Path(self.project).exists('app'))
         self.assertFalse(Path(self.project_app).exists('haha'))
 
+    def test_getcwdb(self):
+        self.assertTrue(isinstance(Path.getcwdb(), Path))
+
+    def test_getcwdu(self):
+        self.assertTrue(isinstance(Path.getcwdu(), Path))
+
     def test_glob(self):
         if is_win:
             pattern = '*p*'
