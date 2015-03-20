@@ -211,11 +211,11 @@ class Path(object):
 
     @staticmethod
     def mkdir(subdir, mode=None, owner=None):
-        return Path(subdir).mkdir()
+        return Path(subdir).mkdir(mode=mode, owner=owner)
 
     @staticmethod
     def makedirs(subdir, mode=None, owner=None):
-        return Path(subdir).makedirs()
+        return Path(subdir).makedirs(mode=mode, owner=owner)
 
     @classmethod
     def move(cls, sources, dst):
