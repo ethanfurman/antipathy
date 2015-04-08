@@ -395,7 +395,7 @@ class Methods(object):
     def __add__(self, other):
         if not isinstance(other, self.basecls):
             return NotImplemented
-        return self.__class__(self._path + self._filename + other)
+        return Path(self._path + self._filename + other)
 
     def __contains__(self, text):
         text = text.replace(self._SYS_SEP, self._SLASH)
@@ -404,7 +404,7 @@ class Methods(object):
     def __div__(self, other):
         if not isinstance(other, self.basecls):
             return NotImplemented
-        other = self.__class__(other)
+        other = Path(other)
         current = ''
         if other._vol:
             if self:
@@ -416,25 +416,25 @@ class Methods(object):
         next = other._dirs + other._filename
         if next[:1] == self._SLASH:
             next = next[1:]
-        return self.__class__(current + self._SLASH + next)
+        return Path(current + self._SLASH + next)
     __truediv__ = __div__
 
     def __eq__(self, other):
         if not isinstance(other, self.basecls):
             return NotImplemented
-        other = self.__class__(other)
+        other = Path(other)
         return self._path == other._path and self._filename == other._filename
 
     def __hash__(self):
         return (self._path + self._filename).__hash__()
 
     def __mod__(self, other):
-        return self.__class__((self._path + self._filename) % other)
+        return Path((self._path + self._filename) % other)
 
     def __mul__(self, other):
         if not isinstance(other, self.basecls):
             return NotImplemented
-        other = self.__class__(other)
+        other = Path(other)
         if other._vol:
             vol = other._vol
             current = []
@@ -462,7 +462,7 @@ class Methods(object):
         ext = self._ext + other._ext
         if vol[:2] == self._SLASH*2 and dirs[:1] != self._SLASH:
             dirs = self._SLASH + dirs
-        return self.__class__(self._EMPTY.join([vol, dirs, base, ext]))
+        return Path(self._EMPTY.join([vol, dirs, base, ext]))
 
     def __ne__(self, other):
         return not self == other
@@ -470,12 +470,12 @@ class Methods(object):
     def __radd__(self, other):
         if not isinstance(other, self.basecls):
             return NotImplemented
-        return self.__class__(other + self._path + self._filename)
+        return Path(other + self._path + self._filename)
 
     def __rdiv__(self, other):
         if not isinstance(other, self.basecls):
             return NotImplemented
-        other = self.__class__(other)
+        other = Path(other)
         return other / self
     __rtruediv__ = __rdiv__
 
@@ -489,13 +489,13 @@ class Methods(object):
     def __rmul__(self, other):
         if not isinstance(other, self.basecls):
             return NotImplemented
-        other = self.__class__(other)
+        other = Path(other)
         return other * self
 
     def __rsub__(self, other):
         if not isinstance(other, self.basecls):
             return NotImplemented
-        other = self.__class__(other)
+        other = Path(other)
         return other - self
 
     def __str__(self):
@@ -505,7 +505,7 @@ class Methods(object):
     def __sub__(self, other):
         if not isinstance(other, self.basecls):
             return NotImplemented
-        other = self.__class__(other)
+        other = Path(other)
         if other == self._EMPTY:
             return self
         if other._vol != self._vol:
@@ -515,7 +515,7 @@ class Methods(object):
         s = self.dirs + self.filename
         if not s.startswith(o):
             raise ValueError("cannot subtract %r from %r" % (other, self))
-        return self.__class__(vol+s[len(o):])
+        return Path(vol+s[len(o):])
 
     def access(self, file_name, mode=None):
         if mode is None:
@@ -542,6 +542,7 @@ class Methods(object):
             else:
                 files = [f for fs in files for f in self.glob(fs)]
             for file in files:
+                file = base_class(file)
                 _os.chflags(file, flags)
 
     elif _py_ver >= (3, 3) and not _is_win:
@@ -554,6 +555,7 @@ class Methods(object):
             else:
                 files = [f for fs in files for f in self.glob(fs)]
             for file in files:
+                file = base_class(file)
                 if follow_symlinks == True:
                     _os.chflags(file, flags)
                 elif follow_symlinks == False:
@@ -572,6 +574,7 @@ class Methods(object):
             else:
                 files = [f for fs in files for f in self.glob(fs)]
             for file in files:
+                file = base_class(file)
                 _os.chmod(file, mode)
 
     else:
@@ -585,6 +588,7 @@ class Methods(object):
             else:
                 files = [f for fs in files for f in self.glob(fs)]
             for file in files:
+                file = self.base_class(file)
                 if follow_symlinks == True:
                     _os.chmod(file, mode)
                 elif follow_symlinks == False:
@@ -603,6 +607,7 @@ class Methods(object):
             else:
                 files = [f for fs in files for f in self.glob(fs)]
             for file in files:
+                file = self.base_class(file)
                 _os.chown(file, uid, gid)
 
     else:
@@ -616,6 +621,7 @@ class Methods(object):
             else:
                 files = [f for fs in files for f in self.glob(fs)]
             for file in files:
+                file = base_class(file)
                 if follow_symlinks == True:
                     _os.chown(file, uid, gid)
                 elif follow_symlinks == False:
@@ -642,28 +648,23 @@ class Methods(object):
             files = self.glob(files)
         else:
             files = [f for fs in files for f in self.glob(fs)]
-        if isinstance(dst, self.__class__):
-            dst = self.basecls[-1](dst)
+        dst = base_class(dst)
         for file in files:
-            src = self.basecls[-1](file)
+            src = base_class(file)
             _shutil.copy2(src, dst)
 
     if _py_ver < (2, 6):
 
         def copytree(self, dst, symlinks=False):
             'thin wrapper around shutil.copytree'
-            if isinstance(dst, self.__class__):
-                dst = self.basecls[-1](dst)
-            src = self.basecls[-1](self)
+            src, dst = base_class(self, dst)
             _shutil.copytree(src, dst, symlinks)
 
     else:
 
         def copytree(self, dst, symlinks=False, ignore=None):
             'thin wrapper around shutil.copytree'
-            if isinstance(dst, self.__class__):
-                dst = self.basecls[-1](dst)
-            src = self.basecls[-1](self)
+            src, dst = base_class(self, dst)
             _shutil.copytree(src, dst, symlinks, ignore)
 
     def count(self, sub, start=None, end=None):
@@ -679,7 +680,7 @@ class Methods(object):
             try:
                 new_suffix = suffix.__class__([x.replace(self._SYS_SEP, self._SLASH) for x in suffix])
             except:
-                raise TypeError("Can't convert %r to str implicitly" % suffix.__class__)
+                raise TypeError("Can't convert %r implicitly" % suffix.__class__)
         start = start or 0
         end = end or len(self)
         return (self._path + self._filename).endswith(new_suffix, start, end)
@@ -687,6 +688,7 @@ class Methods(object):
     def exists(self, name=None):
         if name is not None:
             self /= name
+        self = base_class(self)
         return _os.path.exists(self)
 
     def find(self, sub, start=None, end=None):
@@ -766,6 +768,7 @@ class Methods(object):
             else:
                 files = [f for fs in files for f in self.glob(fs)]
             for file in files:
+                file = base_class(file)
                 _os.chflags(file, flags)
 
     if hasattr(_os, 'lchmod'):
@@ -778,6 +781,7 @@ class Methods(object):
             else:
                 files = [f for fs in files for f in self.glob(fs)]
             for file in files:
+                file = base_class(file)
                 _os.lchmod(file, mode)
 
     if hasattr(_os, 'lchown'):
@@ -790,6 +794,7 @@ class Methods(object):
             else:
                 files = [f for fs in files for f in self.glob(fs)]
             for file in files:
+                file = base_class(file)
                 _os.lchown(file, uid, gid)
 
     if hasattr(_os.path, 'lexists'):
@@ -797,6 +802,7 @@ class Methods(object):
         def lexists(self, file_name=None):
             if file_name is not None:
                 self /= file_name
+            self = base_class(self)
             return _os.path.lexists(self)
 
     if not _is_win:
@@ -807,6 +813,7 @@ class Methods(object):
                 source = self
             else:
                 source = self/source
+            source, new_name = base_class(source, new_name)
             return _os.link(source, new_name)
 
     def listdir(self, subdir=None):
@@ -819,6 +826,7 @@ class Methods(object):
         def lstat(self, file_name=None):
             if file_name is not None:
                 self /= file_name
+            self = base_class(self)
             return _os.lstat(self)
 
     def lstrip(self, chars=None):
@@ -855,12 +863,15 @@ class Methods(object):
             subdirs = [d for ds in subdirs for d in self.glob(ds)]
         if mode is None:
             for subdir in subdirs:
+                subdir = base_class(subdir)
                 _os.mkdir(subdir)
         else:
             for subdir in subdirs:
+                subdir = base_class(subdir)
                 _os.mkdir(subdir, mode)
         if owner is not None:
             for subdir in subdirs:
+                subdir = base_class(subdir)
                 _os.chown(subdir, *owner)
 
     def makedirs(self, subdirs=None, mode=None, owner=None):
@@ -901,10 +912,9 @@ class Methods(object):
             files = self.glob(files)
         else:
             files = [f for fs in files for f in self.glob(fs)]
-        if isinstance(dst, self.__class__):
-            dst = self.basecls[-1](dst)
+        dst = base_class(dst)
         for file in files:
-            src = self.basecls[-1](file)
+            src = base_class(file)
             _shutil.move(src, dst)
 
     def open(self, file_name=None, mode=None, buffering=None, encoding=None):
@@ -926,6 +936,7 @@ class Methods(object):
             file_name = self
         else:
             file_name = self/file_name
+        file_name = base_class(file_name)
         if mode is None:
             mode = 'r'
         if buffering is encoding is None:
@@ -944,11 +955,13 @@ class Methods(object):
                 conf_name, name = name, None
             if name is not None:
                 self /= name
+            self = base_class(self)
             return _os.pathconf(self, conf_name)
 
         pathconf_names = _os.pathconf_names
 
         def readlink(self):
+            self = base_class(self)
             return _os.readlink(self)
 
     def removedirs(self, subdirs=None):
@@ -959,6 +972,7 @@ class Methods(object):
         else:
             subdirs = [d for ds in subdirs for d in self.glob(ds)]
         for subdir in subdirs:
+            subdir = base_class(subdir)
             _os.removedirs(subdir)
 
     def rename(self, file_name, dst=None):
@@ -968,9 +982,7 @@ class Methods(object):
             file_name = self
         else:
             file_name = self/file_name
-        if isinstance(dst, self.__class__):
-            dst = self.basecls[-1](dst)
-        src = self.basecls[-1](file_name)
+        src, dst = base_class(file_name, dst)
         _os.rename(src, dst)
 
     def renames(self, file_name, dst=None):
@@ -979,7 +991,8 @@ class Methods(object):
             file_name = self
         else:
             file_name = self/file_name
-        return _os.renames(file_name, dst)
+        src, dst = base_class(file_name, dst)
+        return _os.renames(src, dst)
 
     def replace(self, old, new, count=None):
         old = old.replace(self._SYS_SEP, self._SLASH)
@@ -998,6 +1011,7 @@ class Methods(object):
         else:
             subdirs = [d for ds in subdirs for d in self.glob(ds)]
         for subdir in subdirs:
+            subdir = base_class(subdir)
             _os.rmdir(subdir)
 
     def rmtree(self, subdirs=None, ignore_errors=None, onerror=None):
@@ -1016,7 +1030,7 @@ class Methods(object):
         else:
             subdirs = [d for ds in subdirs for d in self.glob(ds)]
         for target in subdirs:
-            target = self.basecls[-1](target)
+            target = base_class(target)
             if ignore_errors is None and onerror is None:
                 _shutil.rmtree(target)
             elif ignore_errors is not None and onerror is None:
@@ -1042,16 +1056,17 @@ class Methods(object):
         return (self._path + self._filename).startswith(new_prefix, start, end)
 
     def stat(self, file_name=None):
-        if file_name is None:
-            return _os.stat(self)
-        else:
-            return _os.stat(self/file_name)
+        if file_name is not None:
+            self /= file_name
+        self = base_class(self)
+        return _os.stat(self)
 
     if not _is_win:
 
         def statvfs(self, name=None):
             if name is not None:
                 self /= name
+            self = base_class(self)
             return _os.statvfs(self)
 
     def strip(self, chars=None):
@@ -1076,6 +1091,7 @@ class Methods(object):
                 source = self
             else:
                 source = self/source
+            source, new_name = base_class(source, new_name)
             return _os.symlink(source, new_name)
 
     def unlink(self, files=None):
@@ -1087,6 +1103,7 @@ class Methods(object):
         else:
             files = [f for fs in files for f in self.glob(fs)]
         for target in files:
+            target = base_class(target)
             _os.unlink(target)
     remove = unlink
 
@@ -1102,6 +1119,7 @@ class Methods(object):
         else:
             files = [f for fs in files for f in self.glob(fs)]
         for file in files:
+            file = base_class(file)
             _os.utime(file, times)
 
     if _py_ver >= (2, 6):
@@ -1109,20 +1127,22 @@ class Methods(object):
             if topdown not in (True, False):
                 raise ValueError('topdown should be True or False, not %r' % topdown)
             p = self.__class__
+            self = base_class(self)
             for dirpath, dirnames, filenames in _os.walk(self, topdown, onerror, followlinks):
                 dirpath = p(dirpath)
-                dirnames = [p(dn) for dn in dirnames]
-                filenames = [p(fn) for fn in filenames]
+                dirnames[:] = [p(dn) for dn in dirnames]
+                filenames[:] = [p(fn) for fn in filenames]
                 yield dirpath, dirnames, filenames
     else:
         def walk(self, topdown=True, onerror=None):
             if topdown not in (True, False):
                 raise ValueError('topdown should be True or False, not %r' % topdown)
             p = self.__class__
+            self = base_class(self)
             for dirpath, dirnames, filenames in _os.walk(self, topdown, onerror):
                 dirpath = p(dirpath)
-                dirnames = [p(dn) for dn in dirnames]
-                filenames = [p(fn) for fn in filenames]
+                dirnames[:] = [p(dn) for dn in dirnames]
+                filenames[:] = [p(fn) for fn in filenames]
                 yield dirpath, dirnames, filenames
 
 class bPath(Methods, Path, bytes):
@@ -1133,7 +1153,6 @@ class bPath(Methods, Path, bytes):
     _PREV_DIR = '..'.encode('ascii')
     _SLASH = '/'.encode('ascii')
     _SYS_SEP = system_sep.encode('ascii')
-bPath.basecls = bPath, bytes
 
 class uPath(Methods, Path, unicode):
     _COLON = unicode(':')
@@ -1143,4 +1162,23 @@ class uPath(Methods, Path, unicode):
     _PREV_DIR = unicode('..')
     _SLASH = unicode('/')
     _SYS_SEP = unicode(system_sep)
-uPath.basecls = uPath, unicode
+
+if _py_ver < (3, 0):
+    bPath.basecls = bPath, bytes, uPath, unicode
+    uPath.basecls = uPath, unicode, bPath, bytes
+else:
+    bPath.basecls = bPath, bytes
+    uPath.basecls = uPath, unicode
+
+def base_class(*paths):
+    result = []
+    for p in paths:
+        if isinstance(p, uPath):
+            p = unicode(p)
+        elif isinstance(p, bPath):
+            p = bytes(p)
+        result.append(p)
+    if len(paths) == 1:
+        return result[0]
+    else:
+        return tuple(result)

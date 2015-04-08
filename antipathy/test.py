@@ -1100,6 +1100,9 @@ class TestPathFileOperations(unittest.TestCase):
 if __name__ == '__main__':
     tempdir = tempfile.mkdtemp()
     shutil.rmtree(tempdir, True)
+    if sys.argv[-1] == '-3':
+        antipathy.set_py3_mode()
+        sys.argv.pop()
     try:
         unittest.main()
     finally:
