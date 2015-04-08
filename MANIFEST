@@ -2,6 +2,7 @@ antipathy/CHANGES
 antipathy/LICENSE
 antipathy/README
 antipathy/__init__.py
+antipathy/path.py
 antipathy/test.py
 setup.py
 CHANGES
