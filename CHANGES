@@ -1,3 +1,13 @@
+0.81.06
+=======
+
+allow bytes/unicode mix in Py2 code; add 'set_py3_mode()' to disallow
+bytes/unicode mix
+
+move code from __init__ to path, and import back into __init__; this
+makes profiling more informative
+
+
 0.81.00
 =======
 
