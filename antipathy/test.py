@@ -5,7 +5,7 @@ import antipathy
 import shutil
 import sys
 import tempfile
-from antipathy import Path, _is_win as is_win, _py_ver as py_ver, bytes, unicode, F_OK, R_OK, W_OK, X_OK
+from antipathy.path import Path, _is_win as is_win, _py_ver as py_ver, bytes, unicode, F_OK, R_OK, W_OK, X_OK
 
 
 class TestPathBasics(unittest.TestCase):
