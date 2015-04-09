@@ -1,3 +1,10 @@
+0.81.08
+=======
+
+fix issue in Path.walk: changes to dirs and files now propagates
+correctly
+
+
 0.81.06
 =======
 
