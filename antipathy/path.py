@@ -301,8 +301,8 @@ class Path(object):
             p = Path(subdir).__class__
             for dirpath, dirnames, filenames in _os.walk(subdir, topdown, onerror, followlinks):
                 dirpath = p(dirpath)
-                dirnames = [p(dn) for dn in dirnames]
-                filenames = [p(fn) for fn in filenames]
+                dirnames[:] = [p(dn) for dn in dirnames]
+                filenames[:] = [p(fn) for fn in filenames]
                 yield dirpath, dirnames, filenames
     else:
         @staticmethod
@@ -310,8 +310,8 @@ class Path(object):
             p = Path(subdir).__class__
             for dirpath, dirnames, filenames in _os.walk(subdir, topdown, onerror):
                 dirpath = p(dirpath)
-                dirnames = [p(dn) for dn in dirnames]
-                filenames = [p(fn) for fn in filenames]
+                dirnames[:] = [p(dn) for dn in dirnames]
+                filenames[:] = [p(fn) for fn in filenames]
                 yield dirpath, dirnames, filenames
 Path.basecls = bytes, str, unicode
 
@@ -523,6 +523,7 @@ class Methods(object):
             file_name = self
         else:
             file_name = self/file_name
+        file_name = base_class(file_name)
         return _os.access(file_name, mode)
 
     def chdir(self, subdir=None):
@@ -530,6 +531,7 @@ class Methods(object):
             subdir = self
         else:
             subdir = self/subdir
+        subdir = base_class(subdir)
         _os.chdir(subdir)
 
     if (2, 6) <= _py_ver < (3, 3) and not _is_win:
@@ -588,7 +590,7 @@ class Methods(object):
             else:
                 files = [f for fs in files for f in self.glob(fs)]
             for file in files:
-                file = self.base_class(file)
+                file = base_class(file)
                 if follow_symlinks == True:
                     _os.chmod(file, mode)
                 elif follow_symlinks == False:
@@ -607,7 +609,7 @@ class Methods(object):
             else:
                 files = [f for fs in files for f in self.glob(fs)]
             for file in files:
-                file = self.base_class(file)
+                file = base_class(file)
                 _os.chown(file, uid, gid)
 
     else:
@@ -718,21 +720,25 @@ class Methods(object):
     def isdir(self, name=None):
         if name is not None:
             self /= name
+        self = base_class(self)
         return _os.path.isdir(self)
 
     def isfile(self, name=None):
         if name is not None:
             self /= name
+        self = base_class(self)
         return _os.path.isfile(self)
 
     def islink(self, name=None):
         if name is not None:
             self /= name
+        self = base_class(self)
         return _os.path.islink(self)
 
     def ismount(self, name=None):
         if name is not None:
             self /= name
+        self = base_class(self)
         return _os.path.ismount(self)
 
     def iter_all(self, name=None):
@@ -842,6 +848,7 @@ class Methods(object):
                 name = self
             else:
                 name = self/name
+            name = base_class(name)
             return _os.mkfifo(name, mode)
 
     def mkdir(self, subdirs=None, mode=None, owner=None):
@@ -865,14 +872,14 @@ class Methods(object):
             for subdir in subdirs:
                 subdir = base_class(subdir)
                 _os.mkdir(subdir)
+                if owner is not None:
+                    _os.chown(subdir, *owner)
         else:
             for subdir in subdirs:
                 subdir = base_class(subdir)
                 _os.mkdir(subdir, mode)
-        if owner is not None:
-            for subdir in subdirs:
-                subdir = base_class(subdir)
-                _os.chown(subdir, *owner)
+                if owner is not None:
+                    _os.chown(subdir, *owner)
 
     def makedirs(self, subdirs=None, mode=None, owner=None):
         """
@@ -898,7 +905,7 @@ class Methods(object):
             for dir in elements:
                 path /= dir
                 if not path.exists():
-                    path.mkdir(mode, owner)
+                    path.mkdir(mode=mode, owner=owner)
 
     def move(self, files, dst=None):
         """
