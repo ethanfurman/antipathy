@@ -317,8 +317,10 @@ Path.basecls = bytes, str, unicode
 
 class Methods(object):
 
-    def __new__(cls, string=''):
+    def __new__(cls, string=None):
         base_cls = cls.basecls[1]       # bytes or unicode
+        if string is None:
+            string = base_cls()
         slash = cls._SLASH
         vol = dirs = filename = base = ext = base_cls()
         if cls._SYS_SEP != '/':
@@ -405,7 +407,7 @@ class Methods(object):
         if not isinstance(other, self.basecls):
             return NotImplemented
         other = Path(other)
-        current = ''
+        current = self.__class__()
         if other._vol:
             if self:
                 raise ValueError("Cannot combine %r and %r" % (self, other))
