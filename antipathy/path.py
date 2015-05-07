@@ -375,7 +375,7 @@ class Methods(object):
 
     @property
     def path(self):
-        return self.__class__(self._path)
+        return self._vol + self.dirs
 
     @property
     def filename(self):

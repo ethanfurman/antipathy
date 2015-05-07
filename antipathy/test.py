@@ -629,12 +629,12 @@ class TestPathStringMethods(TestCase):
         self.assertEqual(self.bp_file.strip_ext(), self.bp_file[:-3])
         self.assertEqual(self.bp_file.strip_ext(2), self.bp_file[:-7])
         self.assertEqual(self.bp_file.strip_ext(3), self.bp_file[:-7])
-        self.assertEqual(self.bp_ext.strip_ext(), self.bp_ext.path)
+        self.assertEqual(self.bp_ext.strip_ext(), self.bp_ext[:-7])
         self.assertEqual(self.up_log.strip_ext(), self.up_log)
         self.assertEqual(self.up_file.strip_ext(), self.up_file[:-3])
         self.assertEqual(self.up_file.strip_ext(2), self.up_file[:-7])
         self.assertEqual(self.up_file.strip_ext(3), self.up_file[:-7])
-        self.assertEqual(self.up_ext.strip_ext(), self.up_ext.path)
+        self.assertEqual(self.up_ext.strip_ext(), self.up_ext[:-7])
 
 
 class TestPathFileOperations(TestCase):
