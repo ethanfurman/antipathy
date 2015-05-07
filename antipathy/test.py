@@ -8,45 +8,61 @@ import tempfile
 from antipathy.path import Path, _is_win as is_win, _py_ver as py_ver, bytes, unicode, F_OK, R_OK, W_OK, X_OK
 
 
-class TestPathBasics(unittest.TestCase):
+_skip = object()
+def not_implemented(func):
+    return _skip
+
+class TestCase(unittest.TestCase):
+
+    def __init__(self, *args, **kwds):
+        empty_tests = []
+        for name, attr in self.__dict__.items():
+            if attr is _skip:
+                empty_tests.append(name)
+        for name in empty_tests:
+            delattr(self, name)
+        super(TestCase, self).__init__(*args, **kwds)
+
+
+class TestPathBasics(TestCase):
 
     test_paths = (
         ("/temp/place/somefile.abc.xyz", 
-            '/temp/place/somefile.abc.xyz', '', '/temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
+            '/temp/place/somefile.abc.xyz', '', '/temp/place', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
         ("/temp/place/somefile.abc.", 
-            '/temp/place/somefile.abc.', '', '/temp/place/', 'somefile.abc.', 'somefile.abc', '.'),
+            '/temp/place/somefile.abc.', '', '/temp/place', 'somefile.abc.', 'somefile.abc', '.'),
         ("/temp/place/somefile.abc", 
-            '/temp/place/somefile.abc', '', '/temp/place/', 'somefile.abc', 'somefile', '.abc'),
+            '/temp/place/somefile.abc', '', '/temp/place', 'somefile.abc', 'somefile', '.abc'),
         ("/temp/place/somefile.", 
-            '/temp/place/somefile.', '', '/temp/place/', 'somefile.', 'somefile', '.'),
+            '/temp/place/somefile.', '', '/temp/place', 'somefile.', 'somefile', '.'),
         ("/temp/place/somefile", 
-            '/temp/place/somefile', '', '/temp/place/', 'somefile', 'somefile', ''),
+            '/temp/place/somefile', '', '/temp/place', 'somefile', 'somefile', ''),
         ("/temp/place/", 
-            '/temp/place/', '', '/temp/place/', '', '', ''),
+            '/temp/place/', '', '/temp/place', '', '', ''),
         ("/.xyz", 
             '/.xyz', '', '/', '.xyz', '', '.xyz'),
         ("/temp/.xyz", 
-            '/temp/.xyz', '', '/temp/', '.xyz', '', '.xyz'),
+            '/temp/.xyz', '', '/temp', '.xyz', '', '.xyz'),
         (".xyz", 
             '.xyz', '', '', '.xyz', '', '.xyz'),
         ("temp/place/somefile.abc.xyz", 
-            'temp/place/somefile.abc.xyz', '', 'temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
+            'temp/place/somefile.abc.xyz', '', 'temp/place', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
         ("temp/place/somefile.abc.", 
-            'temp/place/somefile.abc.', '', 'temp/place/', 'somefile.abc.', 'somefile.abc', '.'),
+            'temp/place/somefile.abc.', '', 'temp/place', 'somefile.abc.', 'somefile.abc', '.'),
         ("temp/place/somefile.abc", 
-            'temp/place/somefile.abc', '', 'temp/place/', 'somefile.abc', 'somefile', '.abc'),
+            'temp/place/somefile.abc', '', 'temp/place', 'somefile.abc', 'somefile', '.abc'),
         ("temp/place/somefile.", 
-            'temp/place/somefile.', '', 'temp/place/', 'somefile.', 'somefile', '.'),
+            'temp/place/somefile.', '', 'temp/place', 'somefile.', 'somefile', '.'),
         ("temp/place/somefile", 
-            'temp/place/somefile', '', 'temp/place/', 'somefile', 'somefile', ''),
+            'temp/place/somefile', '', 'temp/place', 'somefile', 'somefile', ''),
         ("temp/place/", 
-            'temp/place/', '', 'temp/place/', '', '', ''),
+            'temp/place/', '', 'temp/place', '', '', ''),
         (".xyz", 
             '.xyz', '', '', '.xyz', '', '.xyz'),
         ("temp/.xyz", 
-            'temp/.xyz', '', 'temp/', '.xyz', '', '.xyz'),
+            'temp/.xyz', '', 'temp', '.xyz', '', '.xyz'),
         ("//peer/share/temp/.xyz", 
-                '//peer/share/temp/.xyz', '//peer/share', '/temp/', '.xyz', '', '.xyz'),
+                '//peer/share/temp/.xyz', '//peer/share', '/temp', '.xyz', '', '.xyz'),
         ("/", 
             '/', '', '/', '', '', ''),
         (".",
@@ -120,134 +136,134 @@ class TestPathBasics(unittest.TestCase):
             'temp\\.xyz', '', '', 'temp\\.xyz', 'temp\\', '.xyz'),
 
         ("c:/temp/place/somefile.abc.xyz", 
-            'c:/temp/place/somefile.abc.xyz', '', 'c:/temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
+            'c:/temp/place/somefile.abc.xyz', '', 'c:/temp/place', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
         ("c:/temp/place/somefile.abc.", 
-            'c:/temp/place/somefile.abc.', '', 'c:/temp/place/', 'somefile.abc.', 'somefile.abc', '.'),
+            'c:/temp/place/somefile.abc.', '', 'c:/temp/place', 'somefile.abc.', 'somefile.abc', '.'),
         ("c:/temp/place/somefile.abc", 
-            'c:/temp/place/somefile.abc', '', 'c:/temp/place/', 'somefile.abc', 'somefile', '.abc'),
+            'c:/temp/place/somefile.abc', '', 'c:/temp/place', 'somefile.abc', 'somefile', '.abc'),
         ("c:/temp/place/somefile.", 
-            'c:/temp/place/somefile.', '', 'c:/temp/place/', 'somefile.', 'somefile', '.'),
+            'c:/temp/place/somefile.', '', 'c:/temp/place', 'somefile.', 'somefile', '.'),
         ("c:/temp/place/somefile", 
-            'c:/temp/place/somefile', '', 'c:/temp/place/', 'somefile', 'somefile', ''),
+            'c:/temp/place/somefile', '', 'c:/temp/place', 'somefile', 'somefile', ''),
         ("c:/temp/place/", 
-            'c:/temp/place/', '', 'c:/temp/place/', '', '', ''),
+            'c:/temp/place/', '', 'c:/temp/place', '', '', ''),
         ("c:/.xyz", 
-            'c:/.xyz', '', 'c:/', '.xyz', '', '.xyz'),
+            'c:/.xyz', '', 'c:', '.xyz', '', '.xyz'),
         ("c:/temp/.xyz", 
-            'c:/temp/.xyz', '', 'c:/temp/', '.xyz', '', '.xyz'),
+            'c:/temp/.xyz', '', 'c:/temp', '.xyz', '', '.xyz'),
         ("c:temp/place/somefile.abc.xyz", 
-            'c:temp/place/somefile.abc.xyz', '', 'c:temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
+            'c:temp/place/somefile.abc.xyz', '', 'c:temp/place', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
         ("c:temp/place/somefile.abc.", 
-            'c:temp/place/somefile.abc.', '', 'c:temp/place/', 'somefile.abc.', 'somefile.abc', '.'),
+            'c:temp/place/somefile.abc.', '', 'c:temp/place', 'somefile.abc.', 'somefile.abc', '.'),
         ("c:temp/place/somefile.abc", 
-            'c:temp/place/somefile.abc', '', 'c:temp/place/', 'somefile.abc', 'somefile', '.abc'),
+            'c:temp/place/somefile.abc', '', 'c:temp/place', 'somefile.abc', 'somefile', '.abc'),
         ("c:temp/place/somefile.", 
-            'c:temp/place/somefile.', '', 'c:temp/place/', 'somefile.', 'somefile', '.'),
+            'c:temp/place/somefile.', '', 'c:temp/place', 'somefile.', 'somefile', '.'),
         ("c:temp/place/somefile", 
-            'c:temp/place/somefile', '', 'c:temp/place/', 'somefile', 'somefile', ''),
+            'c:temp/place/somefile', '', 'c:temp/place', 'somefile', 'somefile', ''),
         ("c:temp/place/", 
-            'c:temp/place/', '', 'c:temp/place/', '', '', ''),
+            'c:temp/place/', '', 'c:temp/place', '', '', ''),
         ("c:.xyz", 
             'c:.xyz', '', '', 'c:.xyz', 'c:', '.xyz'),
         ("c:temp/.xyz", 
-            'c:temp/.xyz', '', 'c:temp/', '.xyz', '', '.xyz'),
+            'c:temp/.xyz', '', 'c:temp', '.xyz', '', '.xyz'),
         )
     test_win_paths = (
         ("c:\\temp\\place\\somefile.abc.xyz", 
-            'c:/temp/place/somefile.abc.xyz', 'c:', '/temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
+            'c:/temp/place/somefile.abc.xyz', 'c:', '/temp/place', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
         ("c:\\temp\\place\\somefile.abc.", 
-            'c:/temp/place/somefile.abc.', 'c:', '/temp/place/', 'somefile.abc.', 'somefile.abc', '.'),
+            'c:/temp/place/somefile.abc.', 'c:', '/temp/place', 'somefile.abc.', 'somefile.abc', '.'),
         ("c:\\temp\\place\\somefile.abc", 
-            'c:/temp/place/somefile.abc', 'c:', '/temp/place/', 'somefile.abc', 'somefile', '.abc'),
+            'c:/temp/place/somefile.abc', 'c:', '/temp/place', 'somefile.abc', 'somefile', '.abc'),
         ("c:\\temp\\place\\somefile.", 
-            'c:/temp/place/somefile.', 'c:', '/temp/place/', 'somefile.', 'somefile', '.'),
+            'c:/temp/place/somefile.', 'c:', '/temp/place', 'somefile.', 'somefile', '.'),
         ("c:\\temp\\place\\somefile", 
-            'c:/temp/place/somefile', 'c:', '/temp/place/', 'somefile', 'somefile', ''),
+            'c:/temp/place/somefile', 'c:', '/temp/place', 'somefile', 'somefile', ''),
         ("c:\\temp\\place\\", 
-            'c:/temp/place/', 'c:', '/temp/place/', '', '', ''),
+            'c:/temp/place/', 'c:', '/temp/place', '', '', ''),
         ("c:\\.xyz", 
             'c:/.xyz', 'c:', '/', '.xyz', '', '.xyz'),
         ("c:\\temp\\.xyz", 
-            'c:/temp/.xyz', 'c:', '/temp/', '.xyz', '', '.xyz'),
+            'c:/temp/.xyz', 'c:', '/temp', '.xyz', '', '.xyz'),
         ("c:temp\\place\\somefile.abc.xyz", 
-            'c:temp/place/somefile.abc.xyz', 'c:', 'temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
+            'c:temp/place/somefile.abc.xyz', 'c:', 'temp/place', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
         ("c:temp\\place\\somefile.abc.", 
-            'c:temp/place/somefile.abc.', 'c:', 'temp/place/', 'somefile.abc.', 'somefile.abc', '.'),
+            'c:temp/place/somefile.abc.', 'c:', 'temp/place', 'somefile.abc.', 'somefile.abc', '.'),
         ("c:temp\\place\\somefile.abc", 
-            'c:temp/place/somefile.abc', 'c:', 'temp/place/', 'somefile.abc', 'somefile', '.abc'),
+            'c:temp/place/somefile.abc', 'c:', 'temp/place', 'somefile.abc', 'somefile', '.abc'),
         ("c:temp\\place\\somefile.", 
-            'c:temp/place/somefile.', 'c:', 'temp/place/', 'somefile.', 'somefile', '.'),
+            'c:temp/place/somefile.', 'c:', 'temp/place', 'somefile.', 'somefile', '.'),
         ("c:temp\\place\\somefile", 
-            'c:temp/place/somefile', 'c:', 'temp/place/', 'somefile', 'somefile', ''),
+            'c:temp/place/somefile', 'c:', 'temp/place', 'somefile', 'somefile', ''),
         ("c:temp\\place\\", 
-            'c:temp/place/', 'c:', 'temp/place/', '', '', ''),
+            'c:temp/place/', 'c:', 'temp/place', '', '', ''),
         ("c:.xyz", 
             'c:.xyz', 'c:', '', '.xyz', '', '.xyz'),
         ("c:temp\\.xyz", 
-            'c:temp/.xyz', 'c:', 'temp/', '.xyz', '', '.xyz'),
+            'c:temp/.xyz', 'c:', 'temp', '.xyz', '', '.xyz'),
         ("\\temp\\place\\somefile.abc.xyz", 
-            '/temp/place/somefile.abc.xyz', '', '/temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
+            '/temp/place/somefile.abc.xyz', '', '/temp/place', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
         ("\\temp\\place\\somefile.abc.", 
-            '/temp/place/somefile.abc.', '', '/temp/place/', 'somefile.abc.', 'somefile.abc', '.'),
+            '/temp/place/somefile.abc.', '', '/temp/place', 'somefile.abc.', 'somefile.abc', '.'),
         ("\\temp\\place\\somefile.abc", 
-            '/temp/place/somefile.abc', '', '/temp/place/', 'somefile.abc', 'somefile', '.abc'),
+            '/temp/place/somefile.abc', '', '/temp/place', 'somefile.abc', 'somefile', '.abc'),
         ("\\temp\\place\\somefile.", 
-            '/temp/place/somefile.', '', '/temp/place/', 'somefile.', 'somefile', '.'),
+            '/temp/place/somefile.', '', '/temp/place', 'somefile.', 'somefile', '.'),
         ("\\temp\\place\\somefile", 
-            '/temp/place/somefile', '', '/temp/place/', 'somefile', 'somefile', ''),
+            '/temp/place/somefile', '', '/temp/place', 'somefile', 'somefile', ''),
         ("\\temp\\place\\", 
-            '/temp/place/', '', '/temp/place/', '', '', ''),
+            '/temp/place/', '', '/temp/place', '', '', ''),
         ("\\.xyz", 
             '/.xyz', '', '/', '.xyz', '', '.xyz'),
         ("\\temp\\.xyz", 
-            '/temp/.xyz', '', '/temp/', '.xyz', '', '.xyz'),
+            '/temp/.xyz', '', '/temp', '.xyz', '', '.xyz'),
         ("temp\\place\\somefile.abc.xyz", 
-            'temp/place/somefile.abc.xyz', '', 'temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
+            'temp/place/somefile.abc.xyz', '', 'temp/place', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
         ("temp\\place\\somefile.abc.", 
-            'temp/place/somefile.abc.', '', 'temp/place/', 'somefile.abc.', 'somefile.abc', '.'),
+            'temp/place/somefile.abc.', '', 'temp/place', 'somefile.abc.', 'somefile.abc', '.'),
         ("temp\\place\\somefile.abc", 
-            'temp/place/somefile.abc', '', 'temp/place/', 'somefile.abc', 'somefile', '.abc'),
+            'temp/place/somefile.abc', '', 'temp/place', 'somefile.abc', 'somefile', '.abc'),
         ("temp\\place\\somefile.", 
-            'temp/place/somefile.', '', 'temp/place/', 'somefile.', 'somefile', '.'),
+            'temp/place/somefile.', '', 'temp/place', 'somefile.', 'somefile', '.'),
         ("temp\\place\\somefile", 
-            'temp/place/somefile', '', 'temp/place/', 'somefile', 'somefile', ''),
+            'temp/place/somefile', '', 'temp/place', 'somefile', 'somefile', ''),
         ("temp\\place\\", 
-            'temp/place/', '', 'temp/place/', '', '', ''),
+            'temp/place/', '', 'temp/place', '', '', ''),
         ("temp\\.xyz", 
-            'temp/.xyz', '', 'temp/', '.xyz', '', '.xyz'),
+            'temp/.xyz', '', 'temp', '.xyz', '', '.xyz'),
 
         ("c:/temp/place/somefile.abc.xyz", 
-            'c:/temp/place/somefile.abc.xyz', 'c:', '/temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
+            'c:/temp/place/somefile.abc.xyz', 'c:', '/temp/place', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
         ("c:/temp/place/somefile.abc.", 
-            'c:/temp/place/somefile.abc.', 'c:', '/temp/place/', 'somefile.abc.', 'somefile.abc', '.'),
+            'c:/temp/place/somefile.abc.', 'c:', '/temp/place', 'somefile.abc.', 'somefile.abc', '.'),
         ("c:/temp/place/somefile.abc", 
-            'c:/temp/place/somefile.abc', 'c:', '/temp/place/', 'somefile.abc', 'somefile', '.abc'),
+            'c:/temp/place/somefile.abc', 'c:', '/temp/place', 'somefile.abc', 'somefile', '.abc'),
         ("c:/temp/place/somefile.", 
-            'c:/temp/place/somefile.', 'c:', '/temp/place/', 'somefile.', 'somefile', '.'),
+            'c:/temp/place/somefile.', 'c:', '/temp/place', 'somefile.', 'somefile', '.'),
         ("c:/temp/place/somefile", 
-            'c:/temp/place/somefile', 'c:', '/temp/place/', 'somefile', 'somefile', ''),
+            'c:/temp/place/somefile', 'c:', '/temp/place', 'somefile', 'somefile', ''),
         ("c:/temp/place/", 
-            'c:/temp/place/', 'c:', '/temp/place/', '', '', ''),
+            'c:/temp/place/', 'c:', '/temp/place', '', '', ''),
         ("c:/.xyz", 
             'c:/.xyz', 'c:', '/', '.xyz', '', '.xyz'),
         ("c:/temp/.xyz", 
-            'c:/temp/.xyz', 'c:', '/temp/', '.xyz', '', '.xyz'),
+            'c:/temp/.xyz', 'c:', '/temp', '.xyz', '', '.xyz'),
         ("c:temp/place/somefile.abc.xyz", 
-            'c:temp/place/somefile.abc.xyz', 'c:', 'temp/place/', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
+            'c:temp/place/somefile.abc.xyz', 'c:', 'temp/place', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
         ("c:temp/place/somefile.abc.", 
-            'c:temp/place/somefile.abc.', 'c:', 'temp/place/', 'somefile.abc.', 'somefile.abc', '.'),
+            'c:temp/place/somefile.abc.', 'c:', 'temp/place', 'somefile.abc.', 'somefile.abc', '.'),
         ("c:temp/place/somefile.abc", 
-            'c:temp/place/somefile.abc', 'c:', 'temp/place/', 'somefile.abc', 'somefile', '.abc'),
+            'c:temp/place/somefile.abc', 'c:', 'temp/place', 'somefile.abc', 'somefile', '.abc'),
         ("c:temp/place/somefile.", 
-            'c:temp/place/somefile.', 'c:', 'temp/place/', 'somefile.', 'somefile', '.'),
+            'c:temp/place/somefile.', 'c:', 'temp/place', 'somefile.', 'somefile', '.'),
         ("c:temp/place/somefile", 
-            'c:temp/place/somefile', 'c:', 'temp/place/', 'somefile', 'somefile', ''),
+            'c:temp/place/somefile', 'c:', 'temp/place', 'somefile', 'somefile', ''),
         ("c:temp/place/", 
-            'c:temp/place/', 'c:', 'temp/place/', '', '', ''),
+            'c:temp/place/', 'c:', 'temp/place', '', '', ''),
         ("c:.xyz", 
             'c:.xyz', 'c:', '', '.xyz', '', '.xyz'),
         ("c:temp/.xyz", 
-            'c:temp/.xyz', 'c:', 'temp/', '.xyz', '', '.xyz'),
+            'c:temp/.xyz', 'c:', 'temp', '.xyz', '', '.xyz'),
         )
 
     def test_errors(self):
@@ -452,7 +468,7 @@ class TestPathBasics(unittest.TestCase):
             self.assertEqual(Path('c:/temp/destination.txt') - Path(''), Path('c:/temp/destination.txt'))
 
 
-class TestPathStringMethods(unittest.TestCase):
+class TestPathStringMethods(TestCase):
 
     def setUp(self):
         self.bp_log = Path('/var/log/syslog'.encode('ascii'))
@@ -621,7 +637,7 @@ class TestPathStringMethods(unittest.TestCase):
         self.assertEqual(self.up_ext.strip_ext(), self.up_ext.path)
 
 
-class TestPathFileOperations(unittest.TestCase):
+class TestPathFileOperations(TestCase):
 
     def setUp(self):
         os.mkdir(tempdir)
@@ -689,8 +705,9 @@ class TestPathFileOperations(unittest.TestCase):
 
     if py_ver >= (2, 6) and not is_win:
 
+        @not_implemented
         def test_chflags(self):
-            raise NotImplementedError
+            pass
 
     if not is_win:
 
@@ -714,13 +731,15 @@ class TestPathFileOperations(unittest.TestCase):
 
     if hasattr(os, 'chown'):
 
+        @not_implemented
         def test_chown(self):
-            raise NotImplementedError
+            pass
 
     if not is_win:
 
+        @not_implemented
         def test_chroot(self):
-            raise NotImplementedError
+            pass
 
     def test_copy(self):
         def verify_binary(new_dir):
@@ -843,13 +862,15 @@ class TestPathFileOperations(unittest.TestCase):
             self.assertTrue(Path(tempdir).islink('.sh_link'))
             self.assertFalse(Path(tempdir).islink('.sh'))
 
+        @not_implemented
         def test_ismount(self):
-            raise NotImplementedError
+            pass
 
     if hasattr(os, 'lchflags'):
 
+        @not_implemented
         def test_lchflags(self):
-            raise NotImplementedError
+            pass
 
     if hasattr(os, 'lchmod'):
 
@@ -873,8 +894,9 @@ class TestPathFileOperations(unittest.TestCase):
 
     if hasattr(os, 'lchown'):
 
+        @not_implemented
         def test_lchown(self):
-            raise NotImplementedError
+            pass
 
     if hasattr(os.path, 'lexists'):
 
@@ -916,8 +938,9 @@ class TestPathFileOperations(unittest.TestCase):
 
     if hasattr(os, 'mkfifo'):
 
+        @not_implemented
         def test_mkfifo(self):
-            raise NotImplementedError
+            pass
 
     def test_mkdir(self):
         Path.mkdir(os.path.join(tempdir, 'test_1'))
@@ -1002,7 +1025,7 @@ class TestPathFileOperations(unittest.TestCase):
         self.assertFalse(os.path.exists(os.path.join(tempdir, 'test_1')))
         os.makedirs(os.path.join(tempdir, 'test_1', 'mirage_2', 'empty_3'))
         self.assertTrue(os.path.exists(os.path.join(tempdir, 'test_1', 'mirage_2', 'empty_3')))
-        Path(os.path.join(tempdir, 'test_1')).removedirs(os.path.join('mirage_2', 'empty_3'))
+        Path(os.path.join(tempdir, 'test_1')).removedirs([os.path.join('mirage_2', 'empty_3')])
         self.assertFalse(os.path.exists(os.path.join(tempdir, 'test_1')))
 
     def test_rename(self):
@@ -1086,14 +1109,21 @@ class TestPathFileOperations(unittest.TestCase):
         Path(tempdir).unlink('.sh')
         self.assertFalse(os.path.exists(self.sh_file))
 
+    @not_implemented
     def test_utime(self):
-        raise NotImplementedError
+        pass
 
     def test_walk(self):
         self.assertTrue(
                 list(os.walk(self.project)) ==
                 list(Path.walk(self.project)) ==
                 list(Path(self.project).walk())
+                ,
+                '\nos: %s\nclass: %s\ninstance: %s' % (
+                        list(os.walk(self.project)),
+                        list(Path.walk(self.project)),
+                        list(Path(self.project).walk())
+                        )
                 )
 
 

@@ -368,7 +368,10 @@ class Methods(object):
 
     @property
     def dirs(self):
-        return self.__class__(self._dirs)
+        result = self.__class__(self._dirs)
+        if len(result) > 1:
+            result = result.rstrip('/')
+        return result
 
     @property
     def path(self):
@@ -513,8 +516,8 @@ class Methods(object):
         if other._vol != self._vol:
             raise ValueError("cannot subtract %r from %r" % (other, self))
         vol = self._EMPTY
-        o = other.dirs + other.filename
-        s = self.dirs + self.filename
+        o = other._dirs + other._filename
+        s = self._dirs + self._filename
         if not s.startswith(o):
             raise ValueError("cannot subtract %r from %r" % (other, self))
         return Path(vol+s[len(o):])
