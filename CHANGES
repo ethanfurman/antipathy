@@ -1,3 +1,9 @@
+0.82.01
+=======
+
+Path().path is now the same as Path().dirs
+
+
 0.82.00
 =======
 
