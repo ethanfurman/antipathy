@@ -546,7 +546,7 @@ class Methods(object):
         if absolute:
             lead, pieces[0] = pieces[0], ''
         while len(pieces) > 1:
-            yield self.__class__(self._SYS_SEP).join(pieces)
+            yield self.__class__(self._SYS_SEP.join(pieces))
             pieces.pop()
         if absolute:
             yield lead

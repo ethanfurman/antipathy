@@ -697,11 +697,13 @@ class TestPathFileOperations(TestCase):
                 ('/usr/home/ethan/source/antipathy', '/usr/home/ethan/source', '/usr/home/ethan', '/usr/home', '/usr', '/'),
                 ):
             self.assertEqual(path, target)
+            self.assertTrue(isinstance(path, Path))
         for path, target in zip(
                 Path.ascend('/usr/home/ethan/source/antipathy/'),
                 ('/usr/home/ethan/source/antipathy', '/usr/home/ethan/source', '/usr/home/ethan', '/usr/home', '/usr', '/'),
                 ):
             self.assertEqual(path, target)
+            self.assertTrue(isinstance(path, Path))
 
     def test_chdir(self):
         current = os.getcwd()
@@ -820,11 +822,13 @@ class TestPathFileOperations(TestCase):
                 ('/', '/usr', '/usr/home', '/usr/home/ethan', '/usr/home/ethan/source', '/usr/home/ethan/source/antipathy'),
                 ):
             self.assertEqual(path, target)
+            self.assertTrue(isinstance(path, Path))
         for path, target in zip(
                 Path.descend('/usr/home/ethan/source/antipathy/'),
                 ('/', '/usr', '/usr/home', '/usr/home/ethan', '/usr/home/ethan/source', '/usr/home/ethan/source/antipathy'),
                 ):
             self.assertEqual(path, target)
+            self.assertTrue(isinstance(path, Path))
 
     def test_exists(self):
         self.assertTrue(Path.exists(self.project_audio))
