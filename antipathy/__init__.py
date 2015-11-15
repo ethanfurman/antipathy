@@ -1,4 +1,4 @@
-version = 0, 82, 2
+version = 0, 82, 3
 
 from antipathy.path import *
 import antipathy.path as _path

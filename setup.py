@@ -43,7 +43,7 @@ Because Path is a subclass of bytes/str/unicode, it can still be passed to other
 """
 
 setup( name='antipathy',
-       version= '0.82.2',
+       version= '0.82.3',
        license='BSD License',
        description='oo view of file paths and names, subclassed from bytes/str/unicode',
        long_description=long_desc,
