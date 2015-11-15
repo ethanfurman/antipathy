@@ -80,6 +80,10 @@ class Path(object):
         return Path(file_name).access(mode)
 
     @staticmethod
+    def ascend(name):
+        return Path(name).ascend()
+
+    @staticmethod
     def chdir(subdir):
         Path(subdir).chdir()
 
@@ -125,6 +129,10 @@ class Path(object):
     @staticmethod
     def copytree(src, dst):
         Path(src).copytree(dst)
+
+    @staticmethod
+    def descend(name):
+        return Path(name).descend()
 
     @staticmethod
     def exists(file_name):
@@ -531,6 +539,18 @@ class Methods(object):
         file_name = base_class(file_name)
         return _os.access(file_name, mode)
 
+    def ascend(self):
+        pieces = self.elements
+        absolute = self[0:1] == self._SYS_SEP
+        lead = None
+        if absolute:
+            lead, pieces[0] = pieces[0], ''
+        while len(pieces) > 1:
+            yield self.__class__(self._SYS_SEP).join(pieces)
+            pieces.pop()
+        if absolute:
+            yield lead
+
     def chdir(self, subdir=None):
         if subdir is None:
             subdir = self
@@ -679,6 +699,16 @@ class Methods(object):
         start = start or 0
         end = end or len(self)
         return (self._path + self._filename).count(new_sub)
+
+    def descend(self):
+        pieces = self.elements
+        if not pieces:
+            return
+        lead, pieces = pieces[0], pieces[1:]
+        yield lead
+        for p in pieces:
+            lead /= p
+            yield lead
 
     def endswith(self, suffix, start=None, end=None):
         if isinstance(suffix, self.basecls):
