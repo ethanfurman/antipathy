@@ -1,3 +1,9 @@
+0.82.02
+=======
+
+add Path.ascend() and Path.descend() to iterate towards or away from /
+
+
 0.82.01
 =======
 
@@ -16,7 +22,7 @@ Path().dirs no longer has trailing slash on non-root directories; i.e.
 0.81.08
 =======
 
-fix issue in Path.walk: changes to dirs and files now propagates
+fix issue in Path.walk: changes to dirs and files now propagate
 correctly
 
 
