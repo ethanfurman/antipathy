@@ -273,6 +273,8 @@ class TestPathBasics(TestCase):
         self.assertRaises(ValueError, Path('/backups/').__div__, Path('//machine/share/temp/'))
         self.assertRaises(ValueError, Path('/backups/file1').__div__, Path('//machine/share/temp/'))
         self.assertRaises(ValueError, Path('/../backups/').__mul__, Path('temp/'))
+        self.assertRaises(ValueError, Path('/backups/').__mul__, Path('../../temp/'))
+        self.assertRaises(ValueError, Path('/backups').__mul__, Path('../../temp/'))
         self.assertRaises(ValueError, Path('/backups/').__mul__, Path('./../../temp/'))
         self.assertRaises(ValueError, Path('c:/backups').__sub__, Path('/backups/'))
         self.assertRaises(ValueError, Path('c:/backups/temp').__sub__, Path('backups/temp'))
@@ -376,6 +378,7 @@ class TestPathBasics(TestCase):
             ('/temp/destination.txt', '_copy_one', '/temp/destination.txt/_copy_one'),
             ('//node/share', 'new', '//node/share/new'),
             ('/var/log/app/temp/../archive', '', '/var/log/app/archive/'),
+            ('Desktop', '../../michael/Desktop', '../michael/Desktop'),
             )
         for initial, add, result in test_data:
             start = Path(initial)

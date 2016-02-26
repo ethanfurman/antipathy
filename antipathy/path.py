@@ -466,9 +466,12 @@ class Methods(object):
             if dir not in (self._CUR_DIR, self._PREV_DIR):
                 new_path.append(dir)
             elif dir == self._PREV_DIR:
-                if not new_path or new_path[-1] in (self._EMPTY, self._SLASH):
+                if len(new_path) == 1 and new_path[0] in (self._SLASH):
                     raise ValueError("Too many .. dirs in %s" % dirs)
-                new_path.pop()
+                elif not new_path or new_path[-1] == self._PREV_DIR:
+                    new_path.append(dir)
+                else:
+                    new_path.pop()
         if len(new_path) > 1 and new_path[0] == self._SLASH:
             new_path[0] = self._EMPTY
         dirs = self._SLASH.join(new_path)
