@@ -1,5 +1,7 @@
+import setuptools
 from distutils.core import setup
 import os
+import sys
 
 
 long_desc="""\
@@ -43,7 +45,7 @@ Because Path is a subclass of bytes/str/unicode, it can still be passed to other
 """
 
 setup( name='antipathy',
-       version= '0.82.3',
+       version= '0.82.4',
        license='BSD License',
        description='oo view of file paths and names, subclassed from bytes/str/unicode',
        long_description=long_desc,
