@@ -347,21 +347,35 @@ class TestPathBasics(TestCase):
             ('', '/', '/'),
             ('/', '', '/'),
             ('/', 'temp/', '/temp/'),
+            ('/', 'temp', '/temp'),
             ('/', '/temp/', '/temp/'),
+            ('/', '/temp', '/temp'),
             ('/temp/', 'backups/', '/temp/backups/'),
+            ('/temp/', 'backups', '/temp/backups'),
+            ('/temp', 'backups', '/temp/backups'),
+            ('/temp', 'backups/', '/temp/backups/'),
             ('/temp/', './backups/', '/temp/backups/'),
+            ('/temp', './backups/', '/temp/backups/'),
+            ('/temp/', './backups', '/temp/backups'),
+            ('/temp', './backups', '/temp/backups'),
             ('/temp/', '/backups/', '/backups/'),
-            ('/temp/this/./.tar', '../backup/./.gz', '/temp/backup/.tar.gz'),
+            ('/temp', '/backups/', '/backups/'),
+            ('/temp/', '/backups', '/backups'),
+            ('/temp', '/backups', '/backups'),
+            ('/temp/this/./.tar', '../backup/./.gz', '/temp/this/backup/.gz'),
+            ('/temp/this/./.tar/', '../backup/./.gz', '/temp/this/backup/.gz'),
+            ('/temp/this/./', '../backup/./.gz', '/temp/backup/.gz'),
+            ('/temp/this/.', '../backup/./.gz', '/temp/backup/.gz'),
             ('/temp/../', './backups/', '/backups/'),
             ('/temp/..', './backups/', '/backups/'),
             ('/temp/.', '../backups/', '/backups/'),
             ('/temp/..', 'backups/', '/backups/'),
-            ('/temp/this.tar', '.gz', '/temp/this.tar.gz'),
-            ('/temp/source', '_destination', '/temp/source_destination'),
-            ('/temp/destination.txt', '_compressed.zip', '/temp/destination_compressed.txt.zip'),
-            ('/temp/destination.txt', '_copy_one', '/temp/destination_copy_one.txt'),
+            ('/temp/this.tar', '.gz', '/temp/this.tar/.gz'),
+            ('/temp/source', '_destination', '/temp/source/_destination'),
+            ('/temp/destination.txt', '_compressed.zip', '/temp/destination.txt/_compressed.zip'),
+            ('/temp/destination.txt', '_copy_one', '/temp/destination.txt/_copy_one'),
             ('//node/share', 'new', '//node/share/new'),
-            ('/var/log/app/temp/../archive', '', '/var/log/app/archive'),
+            ('/var/log/app/temp/../archive', '', '/var/log/app/archive/'),
             )
         for initial, add, result in test_data:
             start = Path(initial)
@@ -369,7 +383,7 @@ class TestPathBasics(TestCase):
             self.assertEqual(start, Path(result), "%r * %r (%s) != %r" % (initial, add, start, Path(result)))
 
     if os.path.__name__ == 'ntpath':
-        def test_multiplication(self):
+        def test_nt_multiplication(self):
             "check path fusing"
             test_data = (
                 ('c:','/temp/','c:/temp/'),
@@ -400,8 +414,8 @@ class TestPathBasics(TestCase):
         def test_posix_multiplication(self):
             "check path fusing"
             test_data = (
-                ('c:','/temp/','/temp/c:'),
-                ('c:','temp/','temp/c:'),
+                ('c:','/temp/','/temp/'),
+                ('c:','temp/','c:/temp/'),
                 ('c:/','/','/'),
                 ('','/','/'),
                 ('c:/','temp/','c:/temp/'),
@@ -409,15 +423,15 @@ class TestPathBasics(TestCase):
                 ('c:/temp/','backups/','c:/temp/backups/'),
                 ('c:/temp/','./backups/','c:/temp/backups/'),
                 ('c:/temp/','/backups/','/backups/'),
-                ('c:/temp/this/./.tar','../backup/./.gz','c:/temp/backup/.tar.gz'),
+                ('c:/temp/this/./.tar','../backup/./.gz','c:/temp/this/backup/.gz'),
                 ('c:/temp/../','./backups/','c:/backups/'),
                 ('c:/temp/..','./backups/','c:/backups/'),
                 ('c:/temp/.','../backups/','c:/backups/'),
                 ('c:/temp/..','backups/','c:/backups/'),
-                ('c:/temp/this.tar','.gz','c:/temp/this.tar.gz'),
-                ('c:/temp/source','_destination','c:/temp/source_destination'),
-                ('c:/temp/destination.txt','_compressed.zip','c:/temp/destination_compressed.txt.zip'),
-                ('c:/temp/destination.txt','_copy_one','c:/temp/destination_copy_one.txt'),
+                ('c:/temp/this.tar','.gz','c:/temp/this.tar/.gz'),
+                ('c:/temp/source','_destination','c:/temp/source/_destination'),
+                ('c:/temp/destination.txt','_compressed.zip','c:/temp/destination.txt/_compressed.zip'),
+                ('c:/temp/destination.txt','_copy_one','c:/temp/destination.txt/_copy_one'),
                 )
             for initial, add, result in test_data:
                 start = Path(initial)

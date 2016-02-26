@@ -454,10 +454,13 @@ class Methods(object):
         else:
             vol = self._vol
             current = self.dir_elements
+            if self._filename:
+                current.append(self._filename)
         next = other.dir_elements
         if next and next[0] == self._SLASH:
             current = []
         dirs = current + next
+        filename = other._filename
         new_path = []
         for dir in dirs:
             if dir not in (self._CUR_DIR, self._PREV_DIR):
@@ -471,11 +474,9 @@ class Methods(object):
         dirs = self._SLASH.join(new_path)
         if dirs[-1:] != self._SLASH:
             dirs += self._SLASH
-        base = self._base + other._base
-        ext = self._ext + other._ext
         if vol[:2] == self._SLASH*2 and dirs[:1] != self._SLASH:
             dirs = self._SLASH + dirs
-        return Path(self._EMPTY.join([vol, dirs, base, ext]))
+        return Path(self._EMPTY.join([vol, dirs, filename]))
 
     def __ne__(self, other):
         return not self == other
