@@ -1,4 +1,11 @@
-0.82.03
+0.82.05
+=======
+
+fixed path fusion to keep embedded .. directories so long as the root
+diectory is not exceeded (if it is in the path)
+
+
+0.82.04
 =======
 
 path fusion (*) now considers all of first argument to be path
