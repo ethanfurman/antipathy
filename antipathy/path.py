@@ -1,7 +1,7 @@
 """
 file path manipulation
 
-Copyright: 2011-2015 Ethan Furman
+Copyright: 2011-2018 Ethan Furman
 """
 
 from os import F_OK, R_OK, W_OK, X_OK
@@ -198,10 +198,6 @@ class Path(object):
     @staticmethod
     def link(source, link_name):
         return Path(source).link(link_name)
-
-    @staticmethod
-    def listdir(subdir):
-        return Path(subdir).listdir()
 
     if hasattr(_os, 'lstat'):
 
