@@ -1,6 +1,5 @@
 import os
 import unittest
-import platform
 import antipathy
 import shutil
 import sys
@@ -484,6 +483,21 @@ class TestPathBasics(TestCase):
             self.assertEqual(Path('c:/temp/backups') - Path('c:/temp/backups'), Path(''))
             self.assertEqual(Path('c:/temp/destination.txt') - Path(''), Path('c:/temp/destination.txt'))
 
+    if py_ver < (3, 0):
+        def test_marshall(self):
+            from xmlrpclib import dumps, loads
+            self.assertEqual(Path('/home/ethan/'), loads(dumps(((Path('/home/ethan/'),))))[0][0])
+            self.assertEqual(Path(b'/home/ethan/'), loads(dumps((Path(b'/home/ethan/'),)))[0][0])
+            if py3_mode:
+                self.assertNotEqual(Path(u'/home/ethan/'), loads(dumps((Path(u'/home/ethan/'),)))[0][0])
+            else:
+                self.assertEqual(Path(u'/home/ethan/'), loads(dumps((Path(u'/home/ethan/'),)))[0][0])
+    else:
+        def test_marshall(self):
+            from xmlrpc.client import dumps, loads
+            self.assertEqual(Path(b'/home/ethan/'), loads(dumps((Path(b'/home/ethan/'),)))[0][0].data)
+            self.assertEqual(Path(u'/home/ethan/'), loads(dumps((Path(u'/home/ethan/'),)))[0][0])
+            self.assertEqual(Path('/home/ethan/'), loads(dumps((Path('/home/ethan/'),)))[0][0])
 
 class TestPathStringMethods(TestCase):
 
@@ -1171,12 +1185,13 @@ class TestPathFileOperations(TestCase):
                         )
                 )
 
-
 if __name__ == '__main__':
     tempdir = tempfile.mkdtemp()
     shutil.rmtree(tempdir, True)
+    py3_mode = False
     if sys.argv[-1] == '-3':
         antipathy.set_py3_mode()
+        py3_mode = True
         sys.argv.pop()
     try:
         unittest.main()

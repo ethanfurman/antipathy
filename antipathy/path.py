@@ -1212,6 +1212,16 @@ else:
     bPath.basecls = bPath, bytes
     uPath.basecls = uPath, unicode
 
+# add xmlrpc support
+if _py_ver < (3, 0):
+    from xmlrpclib import Marshaller
+    Marshaller.dispatch[bPath] = Marshaller.dump_string
+else:
+    from xmlrpc.client import Marshaller
+    Marshaller.dispatch[bPath] = Marshaller.dump_bytes
+Marshaller.dispatch[uPath] = Marshaller.dump_unicode
+del Marshaller
+
 def base_class(*paths):
     result = []
     for p in paths:
