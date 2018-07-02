@@ -1,3 +1,9 @@
+0.82.06
+=======
+
+add support for Marshalling as either bytes or unicode
+
+
 0.82.05
 =======
 
