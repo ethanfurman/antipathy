@@ -41,8 +41,11 @@ class Path(object):
     def __new__(cls, *paths):
         if not paths:
             paths = (unicode(), )
-        if len(paths) == 1 and isinstance(paths[0], cls):
-            return paths[0]
+        elif len(paths) == 1:
+            if isinstance(paths[0], cls):
+                return paths[0]
+            else:
+                paths = (ospath(paths[0]), )
         if isinstance(paths[0], unicode):
             str_cls = unicode
             new_cls = uPath
@@ -254,10 +257,6 @@ class Path(object):
     def link(source, link_name):
         return Path(source).link(link_name)
 
-    @staticmethod
-    def listdir(subdir):
-        return Path(subdir).listdir()
-
     if hasattr(_os, 'lstat'):
 
         @staticmethod
@@ -419,7 +418,7 @@ class Methods(object):
             vol = pieces.pop(0)
         else:
             vol = cls._EMPTY
-        pieces = pieces[:1] + [p for p in peices[1:-1] if p] + p[-1:]
+        pieces = pieces[:1] + [p for p in pieces[1:-1] if p] + p[-1:]
         # for bit in pieces[1:-1]:
         #     if not bit:
         #         raise ValueError("bad path: %r" % string)
@@ -1348,3 +1347,13 @@ def all_equal(iterator, test=None):
         if not test(item):
             return False
     return True
+
+
+def ospath(thing):
+    if not isinstance(thing, (bytes, unicode)):
+        try:
+            thing.__ospath__()
+        except AttributeError:
+            raise TypeError('%r must be a bytes, str, or path-like object, not %r' % (thing, type(thing)))
+    return thing
+
