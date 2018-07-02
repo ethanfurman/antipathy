@@ -44,8 +44,13 @@ Because Path is a subclass of bytes/str/unicode, it can still be passed to other
 [2] in most cases -- there are a few places that do a `type` check instead of an `isinstance` check.
 """
 
-setup( name='antipathy',
-       version= '0.82.5',
+py2_only = ()
+py3_only = ()
+make = []
+
+data = dict(
+       name='antipathy',
+       version='0.82.5',
        license='BSD License',
        description='oo view of file paths and names, subclassed from bytes/str/unicode',
        long_description=long_desc,
@@ -60,11 +65,15 @@ setup( name='antipathy',
             'License :: OSI Approved :: BSD License',
             'Programming Language :: Python',
             'Topic :: Database',
-            'Programming Language :: Python :: 2.4',
-            'Programming Language :: Python :: 2.5',
             'Programming Language :: Python :: 2.6',
             'Programming Language :: Python :: 2.7',
-            'Programming Language :: Python :: 3',
+            'Programming Language :: Python :: 3.3',
+            'Programming Language :: Python :: 3.4',
+            'Programming Language :: Python :: 3.5',
+            'Programming Language :: Python :: 3.6',
+            'Programming Language :: Python :: 3.7',
             ],
-    )
+            )
 
+if __name__ == '__main__':
+    setup(**data)
