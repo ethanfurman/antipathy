@@ -39,13 +39,11 @@ class Path(object):
     """
 
     def __new__(cls, *paths):
+        paths = tuple([ospath(p) for p in paths])
         if not paths:
             paths = (unicode(), )
-        elif len(paths) == 1:
-            if isinstance(paths[0], cls):
+        elif len(paths) == 1 and isinstance(paths[0], cls):
                 return paths[0]
-            else:
-                paths = (ospath(paths[0]), )
         if isinstance(paths[0], unicode):
             str_cls = unicode
             new_cls = uPath
@@ -1350,10 +1348,10 @@ def all_equal(iterator, test=None):
 
 
 def ospath(thing):
-    if not isinstance(thing, (bytes, unicode)):
-        try:
-            thing.__ospath__()
-        except AttributeError:
-            raise TypeError('%r must be a bytes, str, or path-like object, not %r' % (thing, type(thing)))
-    return thing
+    try:
+        return thing.__ospath__()
+    except AttributeError:
+        if isinstance(thing, (bytes, unicode)):
+            return thing
+        raise TypeError('%r must be a bytes, str, or path-like object, not %r' % (thing, type(thing)))
 
