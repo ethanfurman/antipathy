@@ -10,7 +10,7 @@ import os as _os
 import shutil as _shutil
 import sys as _sys
 
-__all__ = ['Path', 'F_OK', 'R_OK', 'W_OK', 'X_OK']
+__all__ = ['Path', 'F_OK', 'R_OK', 'W_OK', 'X_OK', 'ospath']
 
 _py_ver = _sys.version_info[:2]
 
