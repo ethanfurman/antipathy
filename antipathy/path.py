@@ -38,14 +38,21 @@ class Path(object):
     ext   = .part1.ext
     """
 
-    def __new__(cls, string=''):
-        if isinstance(string, cls):
-            return string
-        if isinstance(string, unicode):
+    def __new__(cls, *paths):
+        paths = tuple([ospath(p) for p in paths])
+        if not paths:
+            paths = (unicode(), )
+        elif len(paths) == 1 and isinstance(paths[0], cls):
+                return paths[0]
+        if isinstance(paths[0], unicode):
+            str_cls = unicode
             new_cls = uPath
         else:
+            str_cls = bytes
             new_cls = bPath
-        p = new_cls.__new__(new_cls, string)
+        if not all_equal(paths, test=lambda p: isinstance(p, str_cls)):
+            raise TypeError('invalid path types: %r' % ([type(p) for p in paths], ))
+        p = new_cls.__new__(new_cls, *paths)
         return p
 
     @staticmethod
@@ -68,12 +75,22 @@ class Path(object):
             return cls.getcwd()
 
     @staticmethod
-    def glob(pattern):
+    def glob(pattern='*'):
         return [Path(p) for p in native_glob(pattern)]
 
     @staticmethod
-    def listdir(dir):
+    def listdir(dir='.'):
         return [Path(p) for p in _os.listdir(dir)]
+
+    @staticmethod
+    def abspath(name):
+        "can result in invalid path if symlinks are present"
+        return Path(_os.path.abspath(name))
+
+    @staticmethod
+    def absolute(name):
+        'returns path from root without resolving .. dirs'
+        return Path(name).absolute()
 
     @staticmethod
     def access(file_name, mode):
@@ -116,6 +133,27 @@ class Path(object):
         def chroot(subdir):
             return Path(subdir).chroot()
 
+    @staticmethod
+    def commonprefix(*paths):
+        if not paths:
+            return Path(unicode())
+        elif len(paths) == 1 and not isinstance(paths[0], list):
+            return Path(paths[0])
+        elif (
+                len(paths) > 1 and isinstance(paths[0], list) or
+                not all_equal(paths, test=lambda x: type(x))
+                ):
+            raise TypeError('invalid path types: %r' % ([type(p) for p in paths], ))
+        else:
+            paths = [Path(p).elements for p in paths]
+            common = []
+            for prefixes in zip(*paths):
+                if all_equal(prefixes):
+                    common.append(prefixes[0])
+                else:
+                    break
+            return Path(*common)
+
     @classmethod
     def copy(cls, files, dst):
         """
@@ -139,20 +177,38 @@ class Path(object):
         return Path(file_name).exists()
 
     @staticmethod
+    def expanduser(name='~'):
+        return Path(_os.path.expanduser(name))
+
+    @staticmethod
+    def expandvars(name):
+        return Path(_os.path.expandvars(name))
+
+    @staticmethod
+    def isabs(name):
+        'thin wrapper os.path.isabs()'
+        raise NotImplementedError()
+
+    @staticmethod
+    def isabsolute(name):
+        'os.path.isabs + windows paths must have drive-letter'
+        raise NotImplementedError()
+
+    @staticmethod
     def isdir(name):
-        return Path(name).isdir()
+        return _os.path.isdir(name)
 
     @staticmethod
     def isfile(name):
-        return Path(name).isfile()
+        return _os.path.isfile(name)
 
     @staticmethod
     def islink(name):
-        return Path(name).islink()
+        return _os.path.islink(name)
 
     @staticmethod
     def ismount(name):
-        return Path(name).ismount()
+        return _os.path.ismount(name)
 
     @staticmethod
     def iter_all(name):
@@ -229,6 +285,10 @@ class Path(object):
         return dst
 
     @staticmethod
+    def normcase(path):
+        return Path(_os.path.normcase(path))
+
+    @staticmethod
     def open(name, mode='r', buffering=None, encoding=None):
         "encoding is only supported on Python3+"
         return Path(name).open(mode, buffering, encoding)
@@ -242,6 +302,16 @@ class Path(object):
         pathconf_names = _os.pathconf_names
 
         readlink = _os.readlink
+
+    @staticmethod
+    def realcase(path):
+        "noop on posix, actual case of path on nt"
+        raise NotImplementedError()
+
+    @staticmethod
+    def realpath(path):
+        "return canonical path (all symlinks resolved)"
+        return Path(_os.path.realpath(path))
 
     @classmethod
     def removedirs(cls, subdirs):
@@ -271,6 +341,10 @@ class Path(object):
             subdirs = Path.glob(subdirs)
         for subdir in subdirs:
             Path(subdir).rmtree(ignore_errors=ignore_errors, onerror=onerror)
+
+    @staticmethod
+    def samefile(path1, path2):
+        return _os.path.samefile(path1, path2)
 
     @staticmethod
     def stat(name):
@@ -323,29 +397,31 @@ Path.basecls = bytes, str, unicode
 
 class Methods(object):
 
-    def __new__(cls, string=None):
+    def __new__(cls, *paths):
         base_cls = cls.basecls[1]       # bytes or unicode
-        if string is None:
-            string = base_cls()
+        if not paths:
+            paths = (base_cls(), )
+        string = '/'.join(paths)
         slash = cls._SLASH
         vol = dirs = filename = base = ext = base_cls()
         if cls._SYS_SEP != '/':
             string = string.replace(cls._SYS_SEP, slash)
-        if string[:2] == slash+slash:           # usually '//'
-            pieces = string.split(slash)
+        pieces = string.split(slash)
+        if string[:2] == slash+slash and string[2:3] != slash:           # usually '//'
+            if len(pieces) < 4:
+                raise ValueError('bad path: %r' % string)
             vol = slash.join(pieces[:4])
             pieces = pieces[4:]
             if pieces:
                 pieces.insert(0, cls._EMPTY)
         elif string[1:2] == cls._COLON and _os.path.__name__ == 'ntpath':
-            vol, string = string[:2], string[2:]
-            pieces = string.split(slash)
+            vol = pieces.pop(0)
         else:
             vol = cls._EMPTY
-            pieces = string.split(slash)
-        for bit in pieces[1:-1]:
-            if not bit:
-                raise ValueError("bad path: %r" % string)
+        pieces = pieces[:1] + [p for p in pieces[1:-1] if p] + p[-1:]
+        # for bit in pieces[1:-1]:
+        #     if not bit:
+        #         raise ValueError("bad path: %r" % string)
         if pieces:
             if pieces[-1] in (cls._CUR_DIR, cls._PREV_DIR, cls._EMPTY):
                 dirs = slash.join(pieces)
@@ -362,7 +438,7 @@ class Methods(object):
         p = base_cls.__new__(cls, vol + dirs + filename)
         p._vol = vol
         p._dirs = dirs
-        p._path = vol + dirs
+        p._dirname = vol + dirs
         p._filename = filename
         p._base = base
         p._ext = ext
@@ -370,34 +446,65 @@ class Methods(object):
 
     @property
     def vol(self):
+        'volume/drive of path'
         return self.__class__(self._vol)
+    drive = vol
+
+    @property
+    def root(self):
+        if self._dirs[:1] == self._SLASH or self._vol[:1] == self._SLASH:
+            return self.__class__(self._SLASH)
+        else:
+            return self._EMPTY
+
+    @property
+    def anchor(self):
+        'pathlib: drive+root'
+        return self.drive + self.root
 
     @property
     def dirs(self):
+        'directories without volue/drive'
         result = self.__class__(self._dirs)
         if len(result) > 1:
-            result = result.rstrip('/')
+            result = result.rstrip(self._SLASH)
         return result
 
     @property
+    def parent(self):
+        'first half of os.path.split(...)'
+        return self.__class__(self._vol + self._dirs)
+    dirname = parent
+
+    @property
     def path(self):
-        return self._vol + self.dirs
+        'self - for compatibility with stdlib'
+        return self
 
     @property
     def filename(self):
+        'second half of os.path.split(...)'
         return self.__class__(self._filename)
+    name = basename = filename
 
     @property
     def base(self):
         return self.__class__(self._base)
+    stem = base
 
     @property
     def ext(self):
         return self.__class__(self._ext)
+    suffix = ext
+
+    @property
+    def suffixes(self):
+        return [self.__class__(e) for e in self._filename.split('.')[1:]]
 
     @property
     def elements(self):
         return list(self.iter_all())
+    parts = elements
 
     @property
     def dir_elements(self):
@@ -406,11 +513,11 @@ class Methods(object):
     def __add__(self, other):
         if not isinstance(other, self.basecls):
             return NotImplemented
-        return Path(self._path + self._filename + other)
+        return Path(self._dirname + self._filename + other)
 
     def __contains__(self, text):
         text = text.replace(self._SYS_SEP, self._SLASH)
-        return text in self._path+self._filename
+        return text in self._dirname+self._filename
 
     def __div__(self, other):
         if not isinstance(other, self.basecls):
@@ -421,7 +528,7 @@ class Methods(object):
             if self:
                 raise ValueError("Cannot combine %r and %r" % (self, other))
             # current = other._vol
-        current += self._path + self._filename
+        current += self._dirname + self._filename
         if current[-1:] == self._SLASH:
             current = current[:-1]
         next = other._dirs + other._filename
@@ -434,13 +541,13 @@ class Methods(object):
         if not isinstance(other, self.basecls):
             return NotImplemented
         other = Path(other)
-        return self._path == other._path and self._filename == other._filename
+        return self._dirname == other._dirname and self._filename == other._filename
 
     def __hash__(self):
-        return (self._path + self._filename).__hash__()
+        return (self._dirname + self._filename).__hash__()
 
     def __mod__(self, other):
-        return Path((self._path + self._filename) % other)
+        return Path((self._dirname + self._filename) % other)
 
     def __mul__(self, other):
         if not isinstance(other, self.basecls):
@@ -485,7 +592,7 @@ class Methods(object):
     def __radd__(self, other):
         if not isinstance(other, self.basecls):
             return NotImplemented
-        return Path(other + self._path + self._filename)
+        return Path(other + self._dirname + self._filename)
 
     def __rdiv__(self, other):
         if not isinstance(other, self.basecls):
@@ -495,11 +602,11 @@ class Methods(object):
     __rtruediv__ = __rdiv__
 
     def __repr__(self):
-        string = self._path + self._filename
+        string = self._dirname + self._filename
         return "Path(%r)" % string
 
     def __rmod__(self, other):
-        return other % (self._path + self._filename)
+        return other % (self._dirname + self._filename)
 
     def __rmul__(self, other):
         if not isinstance(other, self.basecls):
@@ -514,7 +621,7 @@ class Methods(object):
         return other - self
 
     def __str__(self):
-        string = self._path + self._filename
+        string = self._dirname + self._filename
         return string
 
     def __sub__(self, other):
@@ -703,7 +810,7 @@ class Methods(object):
         new_sub = sub.replace(self._SYS_SEP, self._SLASH)
         start = start or 0
         end = end or len(self)
-        return (self._path + self._filename).count(new_sub)
+        return (self._dirname + self._filename).count(new_sub)
 
     def descend(self):
         pieces = self.elements
@@ -725,7 +832,7 @@ class Methods(object):
                 raise TypeError("Can't convert %r implicitly" % suffix.__class__)
         start = start or 0
         end = end or len(self)
-        return (self._path + self._filename).endswith(new_suffix, start, end)
+        return (self._dirname + self._filename).endswith(new_suffix, start, end)
 
     def exists(self, name=None):
         if name is not None:
@@ -737,7 +844,7 @@ class Methods(object):
         new_sub = sub.replace(self._SYS_SEP, self._SLASH)
         start = start or 0
         end = end or len(self)
-        return (self._path + self._filename).find(new_sub)
+        return (self._dirname + self._filename).find(new_sub)
 
     def format(self, other):
         raise AttributeError("'Path' object has no attribute 'format'")
@@ -878,7 +985,7 @@ class Methods(object):
     def lstrip(self, chars=None):
         if chars is not None:
             chars = chars.replace(self._SYS_SEP, self._SLASH)
-        return self.__class__((self._path + self._filename).lstrip(chars))
+        return self.__class__((self._dirname + self._filename).lstrip(chars))
 
     if hasattr(_os, 'mkfifo'):
 
@@ -1047,9 +1154,9 @@ class Methods(object):
         old = old.replace(self._SYS_SEP, self._SLASH)
         new = new.replace(self._SYS_SEP, self._SLASH)
         if count:
-            return self.__class__((self._path + self._filename).replace(old, new, count))
+            return self.__class__((self._dirname + self._filename).replace(old, new, count))
         else:
-            return self.__class__((self._path + self._filename).replace(old, new))
+            return self.__class__((self._dirname + self._filename).replace(old, new))
 
     def rmdir(self, subdirs=None):
         'thin wrapper around os.rmdir'
@@ -1090,7 +1197,7 @@ class Methods(object):
     def rstrip(self, chars=None):
         if chars is not None:
             chars = chars.replace(self._SYS_SEP, self._SLASH)
-        return self.__class__((self._path + self._filename).rstrip(chars))
+        return self.__class__((self._dirname + self._filename).rstrip(chars))
 
     def startswith(self, prefix, start=None, end=None):
         if isinstance(prefix, self.basecls):
@@ -1102,7 +1209,7 @@ class Methods(object):
                 raise TypeError("Can't convert %r to %s implicitly" % (prefix.__class__, self.__class__.__name__))
         start = start or 0
         end = end or len(self)
-        return (self._path + self._filename).startswith(new_prefix, start, end)
+        return (self._dirname + self._filename).startswith(new_prefix, start, end)
 
     def stat(self, file_name=None):
         if file_name is not None:
@@ -1121,7 +1228,7 @@ class Methods(object):
     def strip(self, chars=None):
         if chars is not None:
             chars = chars.replace(self._SYS_SEP, self._SLASH)
-        return self.__class__((self._path + self._filename).strip(chars))
+        return self.__class__((self._dirname + self._filename).strip(chars))
 
     def strip_ext(self, remove=1):
         remove_all = False
@@ -1130,7 +1237,7 @@ class Methods(object):
             remove = -1
         while (remove_all or remove > 0) and self.ext:
             remove -= 1
-            self = self.__class__(self._path + self._base)
+            self = self.__class__(self._dirname + self._base)
         return self
 
     if not _is_win:
@@ -1242,3 +1349,27 @@ def base_class(*paths):
         return result[0]
     else:
         return tuple(result)
+
+def all_equal(iterator, test=None):
+    '''if `test is None` do a straight equality test'''
+    it = iter(iterator)
+    if test is None:
+        try:
+            target = next(it)
+            test = lambda x: x == target
+        except StopIteration:
+            return True
+    for item in it:
+        if not test(item):
+            return False
+    return True
+
+
+def ospath(thing):
+    try:
+        return thing.__ospath__()
+    except AttributeError:
+        if isinstance(thing, (bytes, unicode)):
+            return thing
+        raise TypeError('%r must be a bytes, str, or path-like object, not %r' % (thing, type(thing)))
+

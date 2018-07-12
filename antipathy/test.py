@@ -4,7 +4,7 @@ import antipathy
 import shutil
 import sys
 import tempfile
-from antipathy.path import Path, _is_win as is_win, _py_ver as py_ver, bytes, unicode, F_OK, R_OK, W_OK, X_OK
+from antipathy.path import Path, _is_win as is_win, _py_ver as py_ver, bytes, unicode, F_OK, R_OK, W_OK, X_OK, ospath
 
 
 _skip = object()
@@ -1184,6 +1184,18 @@ class TestPathFileOperations(TestCase):
                         list(Path(self.project).walk())
                         )
                 )
+
+
+class TestOspath(TestCase):
+
+        def test_ospath(self):
+            class Blah(object):
+              def __init__(self, path):
+                self._path = path
+              def __ospath__(self):
+                return self._path
+            self.assertEqual('/home/ethan/source', ospath(Blah('/home/ethan/source')))
+
 
 if __name__ == '__main__':
     tempdir = tempfile.mkdtemp()
