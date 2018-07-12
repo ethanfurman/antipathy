@@ -401,8 +401,18 @@ class Methods(object):
         base_cls = cls.basecls[1]       # bytes or unicode
         if not paths:
             paths = (base_cls(), )
-        string = '/'.join(paths)
+        # string = '/'.join(paths)
+        elif len(paths) > 1:
+            new_paths = []
+            for first, second in zip(paths[:-1], paths[1:]):
+                if second.startswith(('/', cls._SYS_SEP)):
+                    new_paths[:] = []
+                    continue
+                new_paths.append(first.rstrip('/'))
+            new_paths.append(second)
+            paths = tuple(new_paths)
         slash = cls._SLASH
+        string = slash.join(paths)
         vol = dirs = filename = base = ext = base_cls()
         if cls._SYS_SEP != '/':
             string = string.replace(cls._SYS_SEP, slash)
@@ -418,7 +428,8 @@ class Methods(object):
             vol = pieces.pop(0)
         else:
             vol = cls._EMPTY
-        pieces = pieces[:1] + [p for p in pieces[1:-1] if p] + p[-1:]
+        if len(pieces) > 2:
+            pieces = pieces[:1] + [p for p in pieces[1:-1] if p] + pieces[-1:]
         # for bit in pieces[1:-1]:
         #     if not bit:
         #         raise ValueError("bad path: %r" % string)

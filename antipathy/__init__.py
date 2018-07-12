@@ -2,7 +2,6 @@ version = 0, 82, 8, 1
 
 from antipathy.path import *
 import antipathy.path as _path
-from antipathy import test
 
 __all__ = _path.__all__
 

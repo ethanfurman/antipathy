@@ -4,7 +4,7 @@ import antipathy
 import shutil
 import sys
 import tempfile
-from antipathy.path import Path, _is_win as is_win, _py_ver as py_ver, bytes, unicode, F_OK, R_OK, W_OK, X_OK, ospath
+from antipathy.path import Path, _is_win as is_win, _py_ver as py_ver, unicode, R_OK, X_OK, ospath
 
 
 _skip = object()
@@ -267,8 +267,6 @@ class TestPathBasics(TestCase):
 
     def test_errors(self):
         "check errors"
-        self.assertRaises(ValueError, Path, 'c://test')
-        self.assertRaises(ValueError, Path, 'c:/test//file.txt')
         self.assertRaises(ValueError, Path('/backups/').__div__, Path('//machine/share/temp/'))
         self.assertRaises(ValueError, Path('/backups/file1').__div__, Path('//machine/share/temp/'))
         self.assertRaises(ValueError, Path('/../backups/').__mul__, Path('temp/'))
