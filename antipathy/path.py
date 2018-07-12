@@ -85,7 +85,7 @@ class Path(object):
 
     @staticmethod
     def chdir(subdir):
-        Path(subdir).chdir()
+        return Path(subdir).chdir()
 
     if _py_ver >= (2, 6) and not _is_win:
         @classmethod
@@ -221,10 +221,12 @@ class Path(object):
 
     @classmethod
     def move(cls, sources, dst):
+        dst = Path(dst)
         if isinstance(sources, cls.basecls):
             sources = Path.glob(sources)
         for source in sources:
             Path(source).move(dst)
+        return dst
 
     @staticmethod
     def open(name, mode='r', buffering=None, encoding=None):
@@ -558,6 +560,7 @@ class Methods(object):
             subdir = self/subdir
         subdir = base_class(subdir)
         _os.chdir(subdir)
+        return subdir
 
     if (2, 6) <= _py_ver < (3, 3) and not _is_win:
 
@@ -659,9 +662,11 @@ class Methods(object):
     if not _is_win:
         def chroot(self, subdir=None):
             if subdir is None:
-                return _os.chroot(self)
+                subdir = self
             else:
-                return _os.chroot(self/subdir)
+                subdir = self/subdir
+            _os.chroot(self/subdir)
+            return subdir
 
     def copy(self, files, dst=None):
         """
@@ -958,6 +963,7 @@ class Methods(object):
         for file in files:
             src = base_class(file)
             _shutil.move(src, dst)
+        return dst
 
     def open(self, file_name=None, mode=None, buffering=None, encoding=None):
         """
@@ -1026,6 +1032,7 @@ class Methods(object):
             file_name = self/file_name
         src, dst = base_class(file_name, dst)
         _os.rename(src, dst)
+        return dst
 
     def renames(self, file_name, dst=None):
         if dst is None:
@@ -1134,7 +1141,8 @@ class Methods(object):
             else:
                 source = self/source
             source, new_name = base_class(source, new_name)
-            return _os.symlink(source, new_name)
+            _os.symlink(source, new_name)
+            return new_name
 
     def unlink(self, files=None):
         "thin wrapper around os.unlink"
