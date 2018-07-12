@@ -475,7 +475,7 @@ class Methods(object):
 
     @property
     def dirs(self):
-        'directories without volue/drive'
+        'directories without volume/drive'
         result = self.__class__(self._dirs)
         if len(result) > 1:
             result = result.rstrip(self._SLASH)

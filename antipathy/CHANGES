@@ -1,3 +1,17 @@
+0.83.00
+=======
+
+add ospath support
+path operations return actual (destination) path used when possible
+partial pathlib support (mostly in naming of properties)
+
+BACKWARDS INCOMPATIBLE CHANGE
+-----------------------------
+the `Path.path` property, which returned the first half of `os.path.split(),
+has been renamed to `Path.parent` (alias: `Path.dirname`) for compatibility
+with the new pathlib.
+
+
 0.82.06
 =======
 
