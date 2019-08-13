@@ -1,3 +1,14 @@
+0.83.01
+=======
+
+add basic url support
+- protocol attribute (http, file, etc)
+- host attribute (www.example.com, etc)
+- site attribute (http://www.example.com)
+- parameters attribute (?some_var=some_value)
+- fragments attribute (#prime&this=those&really_cool)
+
+
 0.83.00
 =======
 
@@ -9,7 +20,7 @@ BACKWARDS INCOMPATIBLE CHANGE
 -----------------------------
 the `Path.path` property, which returned the first half of `os.path.split(),
 has been renamed to `Path.parent` (alias: `Path.dirname`) for compatibility
-with the new pathlib.
+with the new pathlib where .path is the entire thing.
 
 
 0.82.06

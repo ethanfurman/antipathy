@@ -1,7 +1,7 @@
 """
 file path manipulation
 
-Copyright: 2011-2018 Ethan Furman
+Copyright: 2011-2019 Ethan Furman
 """
 
 from os import F_OK, R_OK, W_OK, X_OK
@@ -43,7 +43,7 @@ class Path(object):
         if not paths:
             paths = (unicode(), )
         elif len(paths) == 1 and isinstance(paths[0], cls):
-                return paths[0]
+            return paths[0]
         if isinstance(paths[0], unicode):
             str_cls = unicode
             new_cls = uPath
@@ -401,7 +401,6 @@ class Methods(object):
         base_cls = cls.basecls[1]       # bytes or unicode
         if not paths:
             paths = (base_cls(), )
-        # string = '/'.join(paths)
         elif len(paths) > 1:
             new_paths = []
             for first, second in zip(paths[:-1], paths[1:]):
@@ -413,7 +412,7 @@ class Methods(object):
             paths = tuple(new_paths)
         slash = cls._SLASH
         string = slash.join(paths)
-        vol = dirs = filename = base = ext = base_cls()
+        vol = dirs = filename = base = ext = protocol = host = site = params = fragments = base_cls()
         if cls._SYS_SEP != '/':
             string = string.replace(cls._SYS_SEP, slash)
         pieces = string.split(slash)
@@ -428,11 +427,20 @@ class Methods(object):
             vol = pieces.pop(0)
         else:
             vol = cls._EMPTY
+        if len(pieces) > 2 and pieces[0].endswith(cls._COLON) and not pieces[1]:
+            protocol = pieces[0][:-1]
+            if len(pieces) > 3:
+                host = pieces[2]
+            site = cls._SLASH.join(pieces[:3]) #'%s://%s' % (protocol, host)
+            pieces = pieces[2:]
+            if cls._QUESTION in string:
+                params = string.split(cls._QUESTION)[1].split(cls._HASHTAG)[0]
+                params = params.split(cls._AMPERSAND)
+                params = dict([p.split(cls._EQUALS) for p in params])
+            if cls._HASHTAG in string:
+                fragments = tuple(string.split(cls._HASHTAG)[1].split(cls._AMPERSAND))
         if len(pieces) > 2:
             pieces = pieces[:1] + [p for p in pieces[1:-1] if p] + pieces[-1:]
-        # for bit in pieces[1:-1]:
-        #     if not bit:
-        #         raise ValueError("bad path: %r" % string)
         if pieces:
             if pieces[-1] in (cls._CUR_DIR, cls._PREV_DIR, cls._EMPTY):
                 dirs = slash.join(pieces)
@@ -453,7 +461,32 @@ class Methods(object):
         p._filename = filename
         p._base = base
         p._ext = ext
+        p._protocol = protocol
+        p._host = host
+        p._site = site
+        p._parameters = params
+        p._fragments = fragments
         return p
+
+    @property
+    def protocol(self):
+        return self._protocol
+
+    @property
+    def host(self):
+        return self._host
+
+    @property
+    def site(self):
+        return self._site
+
+    @property
+    def parameters(self):
+        return self._parameters
+
+    @property
+    def fragments(self):
+        return self._fragments
 
     @property
     def vol(self):
@@ -1321,6 +1354,10 @@ class bPath(Methods, Path, bytes):
     _PREV_DIR = '..'.encode('ascii')
     _SLASH = '/'.encode('ascii')
     _SYS_SEP = system_sep.encode('ascii')
+    _QUESTION = '?'.encode('ascii')
+    _HASHTAG = '#'.encode('ascii')
+    _AMPERSAND = '&'.encode('ascii')
+    _EQUALS = '='.encode('ascii')
 
 class uPath(Methods, Path, unicode):
     _COLON = unicode(':')
@@ -1330,6 +1367,10 @@ class uPath(Methods, Path, unicode):
     _PREV_DIR = unicode('..')
     _SLASH = unicode('/')
     _SYS_SEP = unicode(system_sep)
+    _QUESTION = unicode('?')
+    _HASHTAG = unicode('#')
+    _AMPERSAND = unicode('&')
+    _EQUALS = unicode('=')
 
 if _py_ver < (3, 0):
     bPath.basecls = bPath, bytes, uPath, unicode
@@ -1338,7 +1379,6 @@ else:
     bPath.basecls = bPath, bytes
     uPath.basecls = uPath, unicode
 
-# add xmlrpc support
 if _py_ver < (3, 0):
     from xmlrpclib import Marshaller
     Marshaller.dispatch[bPath] = Marshaller.dump_string

@@ -1195,6 +1195,40 @@ class TestOspath(TestCase):
             self.assertEqual('/home/ethan/source', ospath(Blah('/home/ethan/source')))
 
 
+class TestPathAsUrl(TestCase):
+
+    def test_http(self):
+        huh = Path('http://openerp.sunridgefarms.com/Plone/LabelDirectory/000455/000455MK.bmp')
+        self.assertEqual(huh.filename, '000455MK.bmp')
+        self.assertEqual(huh.base, '000455MK')
+        self.assertEqual(huh.ext, '.bmp')
+        self.assertEqual(huh, 'http://openerp.sunridgefarms.com/Plone/LabelDirectory/000455/000455MK.bmp')
+        self.assertEqual(huh.protocol, 'http')
+        self.assertEqual(huh.host, 'openerp.sunridgefarms.com')
+        self.assertEqual(huh.site, 'http://openerp.sunridgefarms.com')
+        self.assertEqual(huh.dirs, 'openerp.sunridgefarms.com/Plone/LabelDirectory/000455')
+
+    def test_http_params(self):
+        huh = Path('https://openerp.sunridgefarms.com/?db=wholeherb&status=vip#page=0&limit=80&view_type=list&model=ir.module.module&menu_id=59&action=38')
+        self.assertEqual(huh, 'https://openerp.sunridgefarms.com/?db=wholeherb&status=vip#page=0&limit=80&view_type=list&model=ir.module.module&menu_id=59&action=38')
+        self.assertEqual(huh.protocol, 'https')
+        self.assertEqual(huh.host, 'openerp.sunridgefarms.com')
+        self.assertEqual(huh.site, 'https://openerp.sunridgefarms.com')
+        self.assertEqual(huh.parameters, {'db':'wholeherb', 'status':'vip'})
+        self.assertEqual(huh.fragments, ('page=0','limit=80','view_type=list','model=ir.module.module','menu_id=59','action=38'))
+
+    def test_file(self):
+        huh = Path('file:///Plone/LabelDirectory/000455/000455MK.bmp')
+        self.assertEqual(huh.filename, '000455MK.bmp')
+        self.assertEqual(huh.base, '000455MK')
+        self.assertEqual(huh.ext, '.bmp')
+        self.assertEqual(huh, 'file:///Plone/LabelDirectory/000455/000455MK.bmp')
+        self.assertEqual(huh.protocol, 'file')
+        self.assertEqual(huh.host, '')
+        self.assertEqual(huh.site, 'file://')
+        self.assertEqual(huh.dirs, '/Plone/LabelDirectory/000455')
+
+
 if __name__ == '__main__':
     tempdir = tempfile.mkdtemp()
     shutil.rmtree(tempdir, True)
