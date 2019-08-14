@@ -75,11 +75,15 @@ class Path(object):
             return cls.getcwd()
 
     @staticmethod
-    def glob(pattern='*'):
+    def glob(pattern=None):
+        if pattern is None:
+            pattern = uPath._STAR
         return [Path(p) for p in native_glob(pattern)]
 
     @staticmethod
-    def listdir(dir='.'):
+    def listdir(dir=None):
+        if dir is None:
+            dir = uPath._DOT
         return [Path(p) for p in _os.listdir(dir)]
 
     @staticmethod
@@ -897,10 +901,16 @@ class Methods(object):
         raise AttributeError("'Path' object has no attribute 'format_map'")
 
     def glob(self, pattern=None):
-        if pattern is None:
-            pattern = self
-        else:
+        if self and pattern:
             pattern = self/pattern
+        elif self and (self._STAR in self or self._QUESTION in self):
+                pattern = self
+        elif self:
+                pattern = self / self._STAR
+        elif pattern:
+            pass
+        else:
+            pattern = self._STAR
         return [Path(p) for p in native_glob(pattern)]
 
     def index(self, sub, start=None, end=None):
@@ -1014,9 +1024,15 @@ class Methods(object):
             return _os.link(source, new_name)
 
     def listdir(self, subdir=None):
-        if subdir is not None:
-            self /= subdir
-        return [Path(p) for p in _os.listdir(self)]
+        if self and subdir:
+            subdir = self / subdir
+        elif self:
+            subdir = self
+        elif subdir:
+            pass
+        else:
+            subdir = self.__class__(self._DOT)
+        return [Path(p) for p in _os.listdir(subdir)]
 
     if hasattr(_os, 'lstat'):
 
@@ -1358,6 +1374,7 @@ class bPath(Methods, Path, bytes):
     _HASHTAG = '#'.encode('ascii')
     _AMPERSAND = '&'.encode('ascii')
     _EQUALS = '='.encode('ascii')
+    _STAR = '*'.encode('ascii')
 
 class uPath(Methods, Path, unicode):
     _COLON = unicode(':')
@@ -1371,6 +1388,7 @@ class uPath(Methods, Path, unicode):
     _HASHTAG = unicode('#')
     _AMPERSAND = unicode('&')
     _EQUALS = unicode('=')
+    _STAR = unicode('*')
 
 if _py_ver < (3, 0):
     bPath.basecls = bPath, bytes, uPath, unicode
