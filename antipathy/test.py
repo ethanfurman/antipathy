@@ -1197,6 +1197,184 @@ class TestOspath(TestCase):
 
 class TestPathAsUrl(TestCase):
 
+    def setUp(self):
+        self.bp_log = Path('https://myserver.com/var/log/syslog'.encode('ascii'))
+        self.up_log = Path(unicode('https://myserver.com/var/log/syslog'))
+        self.bp_file = Path('file:///home/ethan/Desktop/Downloads/delta_game.tar.gz'.encode('ascii'))
+        self.up_file = Path(unicode('file:///home/ethan/Desktop/Downloads/delta_game.tar.gz'))
+        self.bp_ext = Path('ftp://your.server.com/home/ethan/.bashrc'.encode('ascii'))
+        self.up_ext = Path(unicode('ftp://your.server.com/home/ethan/.bashrc'))
+        self.b_slash = '/'.encode('ascii')
+        self.u_slash = unicode('/')
+        self.b_D = 'D'.encode('ascii')
+        self.u_D = unicode('D')
+        self.b_f = 'f'.encode('ascii')
+        self.u_f = unicode('f')
+        self.b_g = 'g'.encode('ascii')
+        self.u_g = unicode('g')
+        self.b_h = 'h'.encode('ascii')
+        self.u_h = unicode('h')
+        self.b_dot = '.'.encode('ascii')
+        self.u_dot = unicode('.')
+        self.b_gz = 'gz'.encode('ascii')
+        self.u_gz = unicode('gz')
+        self.b_log = 'log'.encode('ascii')
+        self.u_log = unicode('log')
+        self.b_rc = 'rc'.encode('ascii')
+        self.u_rc = unicode('rc')
+        self.b_https = 'https'.encode('ascii')
+        self.u_https = unicode('https')
+        self.b_file = 'file'.encode('ascii')
+        self.u_file = unicode('file')
+        self.b_ftp = 'ftp'.encode('ascii')
+        self.u_ftp = unicode('ftp')
+
+    def test_count(self):
+        self.assertEqual(self.bp_log.count(self.b_slash), 5)
+        self.assertEqual(self.up_log.count(self.u_slash), 5)
+        self.assertEqual(self.bp_file.count(self.b_D), 2)
+        self.assertEqual(self.up_file.count(self.u_D), 2)
+        self.assertEqual(self.bp_ext.count(self.b_dot), 3)
+        self.assertEqual(self.up_ext.count(self.u_dot), 3)
+
+    def test_endswith(self):
+        self.assertTrue(self.bp_log.endswith(self.b_log))
+        self.assertFalse(self.bp_log.endswith(self.b_gz))
+        self.assertTrue(self.bp_file.endswith(self.b_gz))
+        self.assertFalse(self.bp_file.endswith(self.b_rc))
+        self.assertTrue(self.bp_ext.endswith(self.b_rc))
+        self.assertFalse(self.bp_ext.endswith(self.b_log))
+        self.assertTrue(self.up_log.endswith(self.u_log))
+        self.assertFalse(self.up_log.endswith(self.u_gz))
+        self.assertTrue(self.up_file.endswith(self.u_gz))
+        self.assertFalse(self.up_file.endswith(self.u_rc))
+        self.assertTrue(self.up_ext.endswith(self.u_rc))
+        self.assertFalse(self.up_ext.endswith(self.u_log))
+
+    def test_find(self):
+        self.assertEqual(self.bp_log.find(self.b_slash), 6)
+        self.assertEqual(self.bp_file.find(self.b_slash), 5)
+        self.assertEqual(self.bp_ext.find(self.b_slash), 4)
+        self.assertEqual(self.bp_log.find(self.b_D), -1)
+        self.assertEqual(self.bp_file.find(self.b_D), 19)
+        self.assertEqual(self.bp_ext.find(self.b_D), -1)
+        self.assertEqual(self.bp_log.find(self.b_dot), 16)
+        self.assertEqual(self.bp_file.find(self.b_dot), 47)
+        self.assertEqual(self.bp_ext.find(self.b_dot), 10)
+        self.assertEqual(self.up_log.find(self.u_slash), 6)
+        self.assertEqual(self.up_file.find(self.u_slash), 5)
+        self.assertEqual(self.up_ext.find(self.u_slash), 4)
+        self.assertEqual(self.up_log.find(self.u_D), -1)
+        self.assertEqual(self.up_file.find(self.u_D), 19)
+        self.assertEqual(self.up_ext.find(self.u_D), -1)
+        self.assertEqual(self.up_log.find(self.u_dot), 16)
+        self.assertEqual(self.up_file.find(self.u_dot), 47)
+        self.assertEqual(self.up_ext.find(self.u_dot), 10)
+
+    def test_index(self):
+        self.assertEqual(self.bp_log.index(self.b_slash), 6)
+        self.assertEqual(self.bp_file.index(self.b_slash), 5)
+        self.assertEqual(self.bp_ext.index(self.b_slash), 4)
+        self.assertRaises(ValueError, self.bp_log.index, self.b_D)
+        self.assertEqual(self.bp_file.index(self.b_D), 19)
+        self.assertRaises(ValueError, self.bp_ext.index, self.b_D)
+        self.assertEqual(self.bp_log.index(self.b_dot), 16)
+        self.assertEqual(self.bp_file.index(self.b_dot), 47)
+        self.assertEqual(self.bp_ext.index(self.b_dot), 10)
+        self.assertEqual(self.up_log.index(self.u_slash), 6)
+        self.assertEqual(self.up_file.index(self.u_slash), 5)
+        self.assertEqual(self.up_ext.index(self.u_slash), 4)
+        self.assertRaises(ValueError, self.up_log.index, self.u_D)
+        self.assertEqual(self.up_file.index(self.u_D), 19)
+        self.assertRaises(ValueError, self.up_ext.index, self.u_D)
+        self.assertEqual(self.up_log.index(self.u_dot), 16)
+        self.assertEqual(self.up_file.index(self.u_dot), 47)
+        self.assertEqual(self.up_ext.index(self.u_dot), 10)
+
+    def test_lstrip(self):
+        self.assertEqual(self.bp_log.lstrip(self.b_h), self.bp_log[1:])
+        self.assertEqual(self.bp_file.lstrip(self.b_f), self.bp_file[1:])
+        self.assertEqual(self.bp_ext.lstrip(self.b_f), self.bp_ext[1:])
+        self.assertEqual(self.up_log.lstrip(self.u_h), self.up_log[1:])
+        self.assertEqual(self.up_file.lstrip(self.u_f), self.up_file[1:])
+        self.assertEqual(self.up_ext.lstrip(self.u_f), self.up_ext[1:])
+
+    def test_replace(self):
+        self.assertEqual(
+                self.bp_log.replace(self.b_slash, self.b_rc),
+                self.bp_log[:].replace(self.b_slash, self.b_rc),
+                )
+        self.assertEqual(
+                self.bp_file.replace(self.b_dot, self.b_rc),
+                self.bp_file[:].replace(self.b_dot, self.b_rc),
+                )
+        self.assertEqual(
+                self.bp_ext.replace(self.b_rc, self.b_log),
+                self.bp_ext[:].replace(self.b_rc, self.b_log),
+                )
+        self.assertEqual(
+                self.up_log.replace(self.u_slash, self.u_rc),
+                self.up_log[:].replace(self.u_slash, self.u_rc),
+                )
+        self.assertEqual(
+                self.up_file.replace(self.u_dot, self.u_rc),
+                self.up_file[:].replace(self.u_dot, self.u_rc),
+                )
+        self.assertEqual(
+                self.up_ext.replace(self.u_rc, self.u_log),
+                self.up_ext[:].replace(self.u_rc, self.u_log),
+                )
+
+    def test_rstrip(self):
+        self.assertEqual(self.bp_log.rstrip(self.b_log), self.bp_log[:-3])
+        self.assertEqual(self.bp_file.rstrip(self.b_gz), self.bp_file[:-2])
+        self.assertEqual(self.bp_ext.rstrip(self.b_rc), self.bp_ext[:-2])
+        self.assertEqual(self.up_log.rstrip(self.u_log), self.up_log[:-3])
+        self.assertEqual(self.up_file.rstrip(self.u_gz), self.up_file[:-2])
+        self.assertEqual(self.up_ext.rstrip(self.u_rc), self.up_ext[:-2])
+
+    def test_startswith(self):
+        self.assertTrue(self.bp_log.startswith(self.b_https))
+        self.assertFalse(self.bp_log.startswith(self.b_ftp))
+        self.assertTrue(self.bp_file.startswith(self.b_file))
+        self.assertFalse(self.bp_file.startswith(self.b_https))
+        self.assertTrue(self.bp_ext.startswith(self.b_ftp))
+        self.assertFalse(self.bp_ext.startswith(self.b_file))
+        self.assertTrue(self.up_log.startswith(self.u_https))
+        self.assertFalse(self.up_log.startswith(self.u_file))
+        self.assertTrue(self.up_file.startswith(self.u_file))
+        self.assertFalse(self.up_file.startswith(self.u_ftp))
+        self.assertTrue(self.up_ext.startswith(self.u_ftp))
+        self.assertFalse(self.up_ext.startswith(self.u_https))
+
+    def test_strip(self):
+        self.assertEqual(self.bp_log.strip(self.b_slash), self.bp_log)
+        self.assertEqual(self.bp_file.strip(self.b_slash), self.bp_file)
+        self.assertEqual(self.bp_ext.strip(self.b_slash), self.bp_ext)
+        self.assertEqual(self.up_log.strip(self.u_slash), self.up_log)
+        self.assertEqual(self.up_file.strip(self.u_slash), self.up_file)
+        self.assertEqual(self.up_ext.strip(self.u_slash), self.up_ext)
+        #
+        self.assertEqual(self.bp_log.strip(self.b_https + self.b_log), self.bp_log[5:-4])
+        self.assertEqual(self.bp_file.strip(self.b_file + self.b_gz), self.bp_file[4:-2])
+        self.assertEqual(self.bp_ext.strip(self.b_ftp + self.b_rc), self.bp_ext[3:-2])
+        self.assertEqual(self.up_log.strip(self.u_https + self.u_log), self.up_log[5:-4])
+        self.assertEqual(self.up_file.strip(self.u_file + self.u_gz), self.up_file[4:-2])
+        self.assertEqual(self.up_ext.strip(self.u_ftp + self.u_rc), self.up_ext[3:-2])
+
+    def test_strip_ext(self):
+        self.assertEqual(self.bp_log.strip_ext(), self.bp_log)
+        self.assertEqual(self.bp_file.strip_ext(), self.bp_file[:-3])
+        self.assertEqual(self.bp_file.strip_ext(2), self.bp_file[:-7])
+        self.assertEqual(self.bp_file.strip_ext(3), self.bp_file[:-7])
+        self.assertEqual(self.bp_ext.strip_ext(), self.bp_ext[:-7])
+        self.assertEqual(self.up_log.strip_ext(), self.up_log)
+        self.assertEqual(self.up_file.strip_ext(), self.up_file[:-3])
+        self.assertEqual(self.up_file.strip_ext(2), self.up_file[:-7])
+        self.assertEqual(self.up_file.strip_ext(3), self.up_file[:-7])
+        self.assertEqual(self.up_ext.strip_ext(), self.up_ext[:-7])
+
+
     def test_http(self):
         huh = Path('http://openerp.sunridgefarms.com/Plone/LabelDirectory/000455/000455MK.bmp')
         self.assertEqual(huh.filename, '000455MK.bmp')
@@ -1207,6 +1385,7 @@ class TestPathAsUrl(TestCase):
         self.assertEqual(huh.host, 'openerp.sunridgefarms.com')
         self.assertEqual(huh.site, 'http://openerp.sunridgefarms.com')
         self.assertEqual(huh.dirs, 'openerp.sunridgefarms.com/Plone/LabelDirectory/000455')
+        self.assertEqual(str(Path(huh.site)), 'http://openerp.sunridgefarms.com')
 
     def test_http_params(self):
         huh = Path('https://openerp.sunridgefarms.com/?db=wholeherb&status=vip#page=0&limit=80&view_type=list&model=ir.module.module&menu_id=59&action=38')
@@ -1216,6 +1395,7 @@ class TestPathAsUrl(TestCase):
         self.assertEqual(huh.site, 'https://openerp.sunridgefarms.com')
         self.assertEqual(huh.parameters, {'db':'wholeherb', 'status':'vip'})
         self.assertEqual(huh.fragments, ('page=0','limit=80','view_type=list','model=ir.module.module','menu_id=59','action=38'))
+        self.assertEqual(str(Path(huh.site)), 'https://openerp.sunridgefarms.com')
 
     def test_file(self):
         huh = Path('file:///Plone/LabelDirectory/000455/000455MK.bmp')

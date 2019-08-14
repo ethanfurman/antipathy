@@ -1,4 +1,10 @@
-0.83.01
+0.83.05
+=======
+
+add string method support for url paths
+
+
+0.83.04
 =======
 
 add basic url support
