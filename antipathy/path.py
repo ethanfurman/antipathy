@@ -416,7 +416,7 @@ class Methods(object):
             paths = tuple(new_paths)
         slash = cls._SLASH
         string = slash.join(paths)
-        vol = dirs = filename = base = ext = protocol = host = site = params = fragments = base_cls()
+        vol = dirs = filename = base = ext = scheme = host = site = params = fragments = base_cls()
         if cls._SYS_SEP != '/':
             string = string.replace(cls._SYS_SEP, slash)
         pieces = string.split(slash)
@@ -432,10 +432,10 @@ class Methods(object):
         else:
             vol = cls._EMPTY
         if len(pieces) > 2 and pieces[0].endswith(cls._COLON) and not pieces[1]:
-            protocol = pieces[0] + cls._SLASH + cls._SLASH
+            scheme = pieces[0] + cls._SLASH + cls._SLASH
             if len(pieces) > 3:
                 host = pieces[2]
-            site = protocol + host
+            site = scheme + host
             pieces = pieces[2:]
             if cls._QUESTION in string:
                 params = string.split(cls._QUESTION)[1].split(cls._HASHTAG)[0]
@@ -458,14 +458,14 @@ class Methods(object):
                     base, ext = filename[:ext_start], filename[ext_start:]
                 else:
                     base = filename
-        p = base_cls.__new__(cls, protocol + vol + dirs + filename)
+        p = base_cls.__new__(cls, scheme + vol + dirs + filename)
         p._vol = vol
         p._dirs = dirs
         p._dirname = vol + dirs
         p._filename = filename
         p._base = base
         p._ext = ext
-        p._protocol = protocol
+        p._scheme = scheme
         p._host = host
         p._site = site
         p._parameters = params
@@ -474,15 +474,19 @@ class Methods(object):
 
     @property
     def protocol(self):
-        return self._protocol[:-3]
+        return self.__class__(self._scheme[:-3])
+
+    @property
+    def scheme(self):
+        return self.__class__(self._scheme)
 
     @property
     def host(self):
-        return self._host
+        return self.__class__(self._host)
 
     @property
     def site(self):
-        return self._site
+        return self.__class__(self._site)
 
     @property
     def parameters(self):
@@ -572,11 +576,11 @@ class Methods(object):
             return NotImplemented
         other = Path(other)
         current = self.__class__()
-        if other._vol or other._protocol:
+        if other._vol or other._scheme:
             if self:
                 raise ValueError("Cannot combine %r and %r" % (self, other))
             # current = other._vol
-        current += self._protocol + self._dirname + self._filename
+        current += self._scheme + self._dirname + self._filename
         if current[-1:] == self._SLASH:
             current = current[:-1]
         next = other._dirs + other._filename
@@ -589,18 +593,18 @@ class Methods(object):
         if not isinstance(other, self.basecls):
             return NotImplemented
         other = Path(other)
-        return self._protocol == other._protocol and self._dirname == other._dirname and self._filename == other._filename
+        return self._scheme == other._scheme and self._dirname == other._dirname and self._filename == other._filename
 
     def __hash__(self):
-        return (self._protocol + self._dirname + self._filename).__hash__()
+        return (self._scheme + self._dirname + self._filename).__hash__()
 
     def __mod__(self, other):
-        return Path((self._protocol + self._dirname + self._filename) % other)
+        return Path((self._scheme + self._dirname + self._filename) % other)
 
     def __mul__(self, other):
         """
         if other.vol, self is ignored;
-        if other.protocol, other.protocol is ignored
+        if other.scheme, other.scheme is ignored
         """
         if not isinstance(other, self.basecls):
             return NotImplemented
@@ -609,7 +613,7 @@ class Methods(object):
             vol = other._vol
             current = []
         else:
-            protocol = self._protocol
+            scheme = self._scheme
             vol = self._vol
             current = self.dir_elements
             if self._filename:
@@ -635,9 +639,9 @@ class Methods(object):
         dirs = self._SLASH.join(new_path)
         if dirs[-1:] != self._SLASH:
             dirs += self._SLASH
-        if (vol[:2] == self._SLASH*2 or protocol) and dirs[:1] != self._SLASH:
+        if (vol[:2] == self._SLASH*2 or scheme) and dirs[:1] != self._SLASH:
             dirs = self._SLASH + dirs
-        return Path(self._EMPTY.join([vol or protocol, dirs, filename]))
+        return Path(self._EMPTY.join([vol or scheme, dirs, filename]))
 
     def __ne__(self, other):
         if not isinstance(other, self.basecls):
@@ -647,7 +651,7 @@ class Methods(object):
     def __radd__(self, other):
         if not isinstance(other, self.basecls):
             return NotImplemented
-        return Path(other + self._protocol + self._dirname + self._filename)
+        return Path(other + self._scheme + self._dirname + self._filename)
 
     def __rdiv__(self, other):
         if not isinstance(other, self.basecls):
@@ -658,13 +662,13 @@ class Methods(object):
 
     def __repr__(self):
         string = ''
-        if self._protocol:
-            string = self._protocol
+        if self._scheme:
+            string = self._scheme
         string += self._dirname + self._filename
         return "Path(%r)" % string
 
     def __rmod__(self, other):
-        return other % (self._protocol + self._dirname + self._filename)
+        return other % (self._scheme + self._dirname + self._filename)
 
     def __rmul__(self, other):
         if not isinstance(other, self.basecls):
@@ -680,8 +684,8 @@ class Methods(object):
 
     def __str__(self):
         string = ''
-        if self._protocol:
-            string = self._protocol
+        if self._scheme:
+            string = self._scheme
         string += self._dirname + self._filename
         return string
 
@@ -691,7 +695,7 @@ class Methods(object):
         other = Path(other)
         if other == self._EMPTY:
             return self
-        if other._vol != self._vol or other._protocol != self._protocol:
+        if other._vol != self._vol or other._scheme != self._scheme:
             raise ValueError("cannot subtract %r from %r" % (other, self))
         vol = self._EMPTY
         o = other._dirs + other._filename
@@ -871,7 +875,7 @@ class Methods(object):
         new_sub = sub.replace(self._SYS_SEP, self._SLASH)
         start = start or 0
         end = end or len(self)
-        return (self._protocol + self._dirname + self._filename).count(new_sub)
+        return (self._scheme + self._dirname + self._filename).count(new_sub)
 
     def descend(self):
         pieces = self.elements
@@ -893,7 +897,7 @@ class Methods(object):
                 raise TypeError("Can't convert %r implicitly" % suffix.__class__)
         start = start or 0
         end = end or len(self)
-        return (self._protocol + self._dirname + self._filename).endswith(new_suffix, start, end)
+        return (self._scheme + self._dirname + self._filename).endswith(new_suffix, start, end)
 
     def exists(self, name=None):
         if name is not None:
@@ -905,7 +909,7 @@ class Methods(object):
         new_sub = sub.replace(self._SYS_SEP, self._SLASH)
         start = start or 0
         end = end or len(self)
-        return (self._protocol + self._dirname + self._filename).find(new_sub)
+        return (self._scheme + self._dirname + self._filename).find(new_sub)
 
     def format(self, other):
         raise AttributeError("'Path' object has no attribute 'format'")
@@ -1059,7 +1063,7 @@ class Methods(object):
     def lstrip(self, chars=None):
         if chars is not None:
             chars = chars.replace(self._SYS_SEP, self._SLASH)
-        return self.__class__((self._protocol + self._dirname + self._filename).lstrip(chars))
+        return self.__class__((self._scheme + self._dirname + self._filename).lstrip(chars))
 
     if hasattr(_os, 'mkfifo'):
 
@@ -1228,9 +1232,9 @@ class Methods(object):
         old = old.replace(self._SYS_SEP, self._SLASH)
         new = new.replace(self._SYS_SEP, self._SLASH)
         if count:
-            return self.__class__((self._protocol + self._dirname + self._filename).replace(old, new, count))
+            return self.__class__((self._scheme + self._dirname + self._filename).replace(old, new, count))
         else:
-            return self.__class__((self._protocol + self._dirname + self._filename).replace(old, new))
+            return self.__class__((self._scheme + self._dirname + self._filename).replace(old, new))
 
     def rmdir(self, subdirs=None):
         'thin wrapper around os.rmdir'
@@ -1271,7 +1275,7 @@ class Methods(object):
     def rstrip(self, chars=None):
         if chars is not None:
             chars = chars.replace(self._SYS_SEP, self._SLASH)
-        return self.__class__((self._protocol + self._dirname + self._filename).rstrip(chars))
+        return self.__class__((self._scheme + self._dirname + self._filename).rstrip(chars))
 
     def startswith(self, prefix, start=None, end=None):
         if isinstance(prefix, self.basecls):
@@ -1283,7 +1287,7 @@ class Methods(object):
                 raise TypeError("Can't convert %r to %s implicitly" % (prefix.__class__, self.__class__.__name__))
         start = start or 0
         end = end or len(self)
-        return (self._protocol + self._dirname + self._filename).startswith(new_prefix, start, end)
+        return (self._scheme + self._dirname + self._filename).startswith(new_prefix, start, end)
 
     def stat(self, file_name=None):
         if file_name is not None:
@@ -1302,7 +1306,7 @@ class Methods(object):
     def strip(self, chars=None):
         if chars is not None:
             chars = chars.replace(self._SYS_SEP, self._SLASH)
-        return self.__class__((self._protocol + self._dirname + self._filename).strip(chars))
+        return self.__class__((self._scheme + self._dirname + self._filename).strip(chars))
 
     def strip_ext(self, remove=1):
         remove_all = False
@@ -1311,7 +1315,7 @@ class Methods(object):
             remove = -1
         while (remove_all or remove > 0) and self.ext:
             remove -= 1
-            self = self.__class__(self._protocol + self._dirname + self._base)
+            self = self.__class__(self._scheme + self._dirname + self._base)
         return self
 
     if not _is_win:
