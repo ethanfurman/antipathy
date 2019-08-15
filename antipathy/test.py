@@ -1197,6 +1197,51 @@ class TestOspath(TestCase):
 
 class TestPathAsUrl(TestCase):
 
+    def test_addition(self):
+        url = Path('https://openerp.sunridgefarms.com/Plone/LabelDirectory/000455/000455MK.bmp')
+        self.assertEqual(
+                url.scheme + url.dirs,
+                Path('https://openerp.sunridgefarms.com/Plone/LabelDirectory/000455'),
+                )
+        self.assertEqual(
+                url.scheme + 'openerp.sunridgefarms.com/Plone/LabelDirectory/000455',
+                Path('https://openerp.sunridgefarms.com/Plone/LabelDirectory/000455'),
+                )
+        self.assertEqual(
+                'https://' + url.dirs,
+                Path('https://openerp.sunridgefarms.com/Plone/LabelDirectory/000455'),
+                )
+
+    def test_subtraction(self):
+        url = Path('https://openerp.sunridgefarms.com/Plone/LabelDirectory/000455/000455MK.bmp')
+        self.assertEqual(
+                url - Path('https://openerp'),
+                '.sunridgefarms.com/Plone/LabelDirectory/000455/000455MK.bmp',
+                )
+        self.assertEqual(
+                'https://openerp.sunridgefarms.com/Plone/LabelDirectory/000455/000455MK.bmp' - url.scheme,
+                'openerp.sunridgefarms.com/Plone/LabelDirectory/000455/000455MK.bmp',
+                )
+        self.assertEqual(
+                url - 'https://openerp.',
+                'sunridgefarms.com/Plone/LabelDirectory/000455/000455MK.bmp',
+                )
+
+    def test_division(self):
+        url = Path('https://openerp.sunridgefarms.com/Plone/LabelDirectory/000455/000455MK.bmp')
+        self.assertEqual(
+                url.scheme / url.dirs / 'subdir' / url.filename,
+                'https://openerp.sunridgefarms.com/Plone/LabelDirectory/000455/subdir/000455MK.bmp',
+                )
+
+    def test_multiplication(self):
+        url = Path('https://openerp.sunridgefarms.com/Plone/LabelDirectory/000455/000455MK.bmp')
+        self.assertEqual(
+                url.scheme / url.dirs * '..' / url.filename,
+                'https://openerp.sunridgefarms.com/Plone/LabelDirectory/000455MK.bmp',
+                )
+
+
     def setUp(self):
         self.bp_log = Path('https://myserver.com/var/log/syslog'.encode('ascii'))
         self.up_log = Path(unicode('https://myserver.com/var/log/syslog'))

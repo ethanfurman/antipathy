@@ -565,11 +565,11 @@ class Methods(object):
     def __add__(self, other):
         if not isinstance(other, self.basecls):
             return NotImplemented
-        return Path(self._dirname + self._filename + other)
+        return Path(self._scheme + self._dirname + self._filename + other)
 
     def __contains__(self, text):
         text = text.replace(self._SYS_SEP, self._SLASH)
-        return text in self._dirname+self._filename
+        return text in self._scheme+self._dirname+self._filename
 
     def __div__(self, other):
         if not isinstance(other, self.basecls):
@@ -639,7 +639,7 @@ class Methods(object):
         dirs = self._SLASH.join(new_path)
         if dirs[-1:] != self._SLASH:
             dirs += self._SLASH
-        if (vol[:2] == self._SLASH*2 or scheme) and dirs[:1] != self._SLASH:
+        if vol[:2] == self._SLASH*2 and dirs[:1] != self._SLASH:
             dirs = self._SLASH + dirs
         return Path(self._EMPTY.join([vol or scheme, dirs, filename]))
 
@@ -661,10 +661,7 @@ class Methods(object):
     __rtruediv__ = __rdiv__
 
     def __repr__(self):
-        string = ''
-        if self._scheme:
-            string = self._scheme
-        string += self._dirname + self._filename
+        string = self._scheme + self._dirname + self._filename
         return "Path(%r)" % string
 
     def __rmod__(self, other):
@@ -683,10 +680,7 @@ class Methods(object):
         return other - self
 
     def __str__(self):
-        string = ''
-        if self._scheme:
-            string = self._scheme
-        string += self._dirname + self._filename
+        string = self._scheme + self._dirname + self._filename
         return string
 
     def __sub__(self, other):
