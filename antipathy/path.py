@@ -1333,11 +1333,17 @@ class Methods(object):
 
     def touch(self, files=None, times=None, no_create=False, reference=None):
         "implement unix touch command"
+        # times, if present, should be a 2-tuple
         utimes = [None, None]
         if reference is not None:
             ref_stat = Path(reference).stat()
             utimes = [ref_stat.st_atime, ref_stat.st_mtime]
-        if times is None:
+        if times is None and (
+                isinstance(files, tuple)
+                and len(files) == 2
+                and isinstance(files[0], (int, float) + self.basecls)
+                and isinstance(files[0], (int, float) + self.basecls)
+            ):
             times = files
             files = [self]
         if times is not None:
@@ -1361,11 +1367,11 @@ class Methods(object):
                 times[1] = utimes[1]
             times = tuple(utimes)
         if isinstance(files, self.basecls):
-            files = self.glob(files) or [files]
+            files = self.glob(files) or [self/files]
         else:
-            files = [f for fs in files for f in (self.glob(fs) or [fs])]
+            files = [f for fs in files for f in (self.glob(fs) or [self/fs])]
         for file in files:
-            if not file.exists():
+            if not Path(file).exists():
                 if no_create:
                     pass
                 else:
@@ -1377,6 +1383,7 @@ class Methods(object):
             else:
                 file = base_class(file)
                 _os.utime(file, times)
+
 
     def unlink(self, files=None):
         "thin wrapper around os.unlink"
