@@ -1454,61 +1454,61 @@ class TestPathAsUrl(TestCase):
         self.assertEqual(huh.dirs, '/Plone/LabelDirectory/000455')
 
 
-class TestOsPathCompatibility(TestCase):
-
-    def test_basename(self):
-        raise NotImplementedError()
-
-    def test_commonpath(self):
-        raise NotImplementedError()
-
-    def test_commonprefix(self):
-        raise NotImplementedError()
-
-    def test_dirname(self):
-        raise NotImplementedError()
-
-    def test_exists(self):
-        raise NotImplementedError()
-
-    def test_lexists(self):
-        raise NotImplementedError()
-
-    def test_expanduser(self):
-        raise NotImplementedError()
-
-    def test_expandvars(self):
-        raise NotImplementedError()
-
-    def test_getsize(self):
-        raise NotImplementedError()
-
-    def test_isabs(self):
-        raise NotImplementedError()
-
-    def test_isfile(self):
-        raise NotImplementedError()
-
-    def test_isdir(self):
-        raise NotImplementedError()
-
-    def test_islink(self):
-        raise NotImplementedError()
-
-    def test_ismount(self):
-        raise NotImplementedError()
-
-    def test_split(self):
-        raise NotImplementedError()
-
-    def test_splitdrive(self):
-        raise NotImplementedError()
-
-    def test_splitext(self):
-        raise NotImplementedError()
-
-    def test_abspath(self):
-        raise NotImplementedError()
+# class TestOsPathCompatibility(TestCase):
+#
+#     def test_basename(self):
+#         raise NotImplementedError()
+#
+#     def test_commonpath(self):
+#         raise NotImplementedError()
+#
+#     def test_commonprefix(self):
+#         raise NotImplementedError()
+#
+#     def test_dirname(self):
+#         raise NotImplementedError()
+#
+#     def test_exists(self):
+#         raise NotImplementedError()
+#
+#     def test_lexists(self):
+#         raise NotImplementedError()
+#
+#     def test_expanduser(self):
+#         raise NotImplementedError()
+#
+#     def test_expandvars(self):
+#         raise NotImplementedError()
+#
+#     def test_getsize(self):
+#         raise NotImplementedError()
+#
+#     def test_isabs(self):
+#         raise NotImplementedError()
+#
+#     def test_isfile(self):
+#         raise NotImplementedError()
+#
+#     def test_isdir(self):
+#         raise NotImplementedError()
+#
+#     def test_islink(self):
+#         raise NotImplementedError()
+#
+#     def test_ismount(self):
+#         raise NotImplementedError()
+#
+#     def test_split(self):
+#         raise NotImplementedError()
+#
+#     def test_splitdrive(self):
+#         raise NotImplementedError()
+#
+#     def test_splitext(self):
+#         raise NotImplementedError()
+#
+#     def test_abspath(self):
+#         raise NotImplementedError()
 
 
 if __name__ == '__main__':

@@ -365,6 +365,14 @@ class Path(object):
         return Path(source).symlink(link_name)
 
     @classmethod
+    def touch(cls, names, times=None, no_create=False, reference=None):
+        if isinstance(names, cls.basecls):
+            names = Path.glob(names) or [names]
+        for name in names:
+            Path(name).touch(None, times, no_create, reference)
+
+
+    @classmethod
     def unlink(cls, names):
         if isinstance(names, cls.basecls):
             names = Path.glob(names)
@@ -1322,6 +1330,53 @@ class Methods(object):
             source, new_name = base_class(source, new_name)
             _os.symlink(source, new_name)
             return new_name
+
+    def touch(self, files=None, times=None, no_create=False, reference=None):
+        "implement unix touch command"
+        utimes = [None, None]
+        if reference is not None:
+            ref_stat = Path(reference).stat()
+            utimes = [ref_stat.st_atime, ref_stat.st_mtime]
+        if times is None:
+            times = files
+            files = [self]
+        if times is not None:
+            if times[0] is not None:
+                utimes[0] = times[0]
+            if times[1] is not None:
+                utimes[1] = times[1]
+        if utimes == [None, None]:
+            times = None
+        else:
+            times = tuple(utimes)
+        if times is not None and None in times:
+            if not self.exists():
+                raise ValueError('times must be a tuple of (atime, mtime)')
+            self_stat = self.stat()
+            utimes = self_stat.st_atime, self_stat.st_mtime
+            times = list(times)
+            if times[0] is None:
+                times[0] = utimes[0]
+            if times[1] is None:
+                times[1] = utimes[1]
+            times = tuple(utimes)
+        if isinstance(files, self.basecls):
+            files = self.glob(files) or [files]
+        else:
+            files = [f for fs in files for f in (self.glob(fs) or [fs])]
+        for file in files:
+            if not file.exists():
+                if no_create:
+                    pass
+                else:
+                    file = base_class(file)
+                    with open(file, 'w') as fh:
+                        pass
+                    if times is not None:
+                        _os.utime(file, times)
+            else:
+                file = base_class(file)
+                _os.utime(file, times)
 
     def unlink(self, files=None):
         "thin wrapper around os.unlink"

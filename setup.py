@@ -50,11 +50,11 @@ make = []
 
 data = dict(
        name='antipathy',
-       version='0.83.7',
+       version='0.83.8a8',
        license='BSD License',
        description='oo view of file paths and names, subclassed from bytes/str/unicode',
        long_description=long_desc,
-       url='https://pypi.python.org/pypi/antipathy',
+       url='https://github.com/ethanfurman/antipathy',
        packages=['antipathy'],
        package_data={'antipathy':['LICENSE', 'README', 'CHANGES']},
        author='Ethan Furman',
@@ -65,13 +65,14 @@ data = dict(
             'License :: OSI Approved :: BSD License',
             'Programming Language :: Python',
             'Topic :: Database',
-            'Programming Language :: Python :: 2.6',
             'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3.3',
             'Programming Language :: Python :: 3.4',
             'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8',
+            'Programming Language :: Python :: 3.9',
             ],
             )
 
