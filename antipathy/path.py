@@ -1366,7 +1366,9 @@ class Methods(object):
             if times[1] is None:
                 times[1] = utimes[1]
             times = tuple(utimes)
-        if isinstance(files, self.basecls):
+        if files is None:
+            files = [self]
+        elif isinstance(files, self.basecls):
             files = self.glob(files) or [self/files]
         else:
             files = [f for fs in files for f in (self.glob(fs) or [self/fs])]
