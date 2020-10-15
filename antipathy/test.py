@@ -4,8 +4,9 @@ import antipathy
 import shutil
 import sys
 import tempfile
+import time
 from antipathy.path import Path, _is_win as is_win, _py_ver as py_ver, unicode, R_OK, X_OK, ospath
-
+from datetime import datetime
 
 _skip = object()
 def not_implemented(func):
@@ -1157,6 +1158,48 @@ class TestPathFileOperations(TestCase):
             self.assertTrue(os.path.islink(os.path.join(tempdir, '.sh_test_2')))
             Path(tempdir).symlink('.sh', os.path.join(tempdir, '.sh_test_3'))
             self.assertTrue(os.path.islink(os.path.join(tempdir, '.sh_test_3')))
+
+    def test_touch(self):
+        haha = Path(tempdir) / 'haha.txt'
+        uhoh = Path(tempdir) / 'uhoh.txt'
+        Path(tempdir).touch('haha.txt')
+        target = time.mktime((2020, 5, 20, 4, 33, 17, -1, -1, -1))
+        uhoh.touch((target, target))
+        uhoh_atime = uhoh.stat().st_atime
+        uhoh_mtime = uhoh.stat().st_mtime
+        self.assertEqual(datetime.fromtimestamp(uhoh_atime), datetime(2020, 5, 20, 4, 33, 17))
+        self.assertEqual(datetime.fromtimestamp(uhoh_mtime), datetime(2020, 5, 20, 4, 33, 17))
+        haha.touch(reference=uhoh)
+        haha_atime = haha.stat().st_atime
+        haha_mtime = haha.stat().st_mtime
+        self.assertEqual(datetime.fromtimestamp(haha_atime), datetime(2020, 5, 20, 4, 33, 17))
+        self.assertEqual(datetime.fromtimestamp(haha_mtime), datetime(2020, 5, 20, 4, 33, 17))
+        target = time.mktime((2015, 5, 20, 4, 33, 17, -1, -1, -1))
+        temp_dir = Path(tempdir)
+        temp_dir.touch('*.txt', (target, target))
+        uhoh_atime = uhoh.stat().st_atime
+        uhoh_mtime = uhoh.stat().st_mtime
+        self.assertEqual(datetime.fromtimestamp(uhoh_atime), datetime(2015, 5, 20, 4, 33, 17))
+        self.assertEqual(datetime.fromtimestamp(uhoh_mtime), datetime(2015, 5, 20, 4, 33, 17))
+        haha_atime = haha.stat().st_atime
+        haha_mtime = haha.stat().st_mtime
+        self.assertEqual(datetime.fromtimestamp(haha_atime), datetime(2015, 5, 20, 4, 33, 17))
+        self.assertEqual(datetime.fromtimestamp(haha_mtime), datetime(2015, 5, 20, 4, 33, 17))
+        blah = temp_dir/'blah'
+        self.assertFalse(blah.exists())
+        blah.touch(no_create=True)
+        self.assertFalse(blah.exists())
+        target = time.mktime((1999, 5, 20, 4, 33, 17, -1, -1, -1))
+        haha.touch((target, None))
+        haha_atime = haha.stat().st_atime
+        haha_mtime = haha.stat().st_mtime
+        self.assertEqual(datetime.fromtimestamp(haha_atime), datetime(1999, 5, 20, 4, 33, 17))
+        self.assertEqual(datetime.fromtimestamp(haha_mtime), datetime(2015, 5, 20, 4, 33, 17))
+        uhoh.touch((None, target))
+        uhoh_atime = uhoh.stat().st_atime
+        uhoh_mtime = uhoh.stat().st_mtime
+        self.assertEqual(datetime.fromtimestamp(uhoh_atime), datetime(2015, 5, 20, 4, 33, 17))
+        self.assertEqual(datetime.fromtimestamp(uhoh_mtime), datetime(1999, 5, 20, 4, 33, 17))
 
     def test_unlink(self):
         Path.unlink(self.project_audio_sound)

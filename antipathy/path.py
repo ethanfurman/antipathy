@@ -22,6 +22,8 @@ else:
     unicode = str
     long = int
 
+NoneType = type(None)
+
 native_glob = _glob.glob
 native_listdir = _os.listdir
 
@@ -1341,11 +1343,10 @@ class Methods(object):
         if times is None and (
                 isinstance(files, tuple)
                 and len(files) == 2
-                and isinstance(files[0], (int, float) + self.basecls)
-                and isinstance(files[0], (int, float) + self.basecls)
+                and isinstance(files[0], (int, float, NoneType))
+                and isinstance(files[1], (int, float, NoneType))
             ):
-            times = files
-            files = [self]
+            times, files = files, times
         if times is not None:
             if times[0] is not None:
                 utimes[0] = times[0]
@@ -1365,7 +1366,7 @@ class Methods(object):
                 times[0] = utimes[0]
             if times[1] is None:
                 times[1] = utimes[1]
-            times = tuple(utimes)
+            times = tuple(times)
         if files is None:
             files = [self]
         elif isinstance(files, self.basecls):
