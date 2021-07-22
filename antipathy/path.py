@@ -36,8 +36,8 @@ class Path(object):
     vol = [ c: | //node/sharepoint | '' ]
     dirs  = [ / | ./ ] + path/to/somewhere/
     filename  = filename.part1.ext
-    base  = filename
-    ext   = .part1.ext
+    base  = filename.part1
+    ext   = .ext
     """
 
     def __new__(cls, *paths):

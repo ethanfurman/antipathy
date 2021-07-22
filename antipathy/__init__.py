@@ -1,6 +1,6 @@
 version = 0, 83, 10
 
-from antipathy.path import *
+from .path import *
 import antipathy.path as _path
 
 __all__ = _path.__all__
