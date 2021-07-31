@@ -1,3 +1,19 @@
+0.84.00
+=======
+
+add commonpath
+add commonprefix
+add isabs
+add relpath
+
+BACKWARDS INCOMPATIBLE CHANGE
+-----------------------------
+url support removed
+addition of paths ignores a trailing slash:
+
+  Path('/home/user/') + 'adron' == Path('/home/useradron')
+
+
 0.83.09
 =======
 

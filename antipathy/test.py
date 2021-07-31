@@ -21,6 +21,10 @@ class TestCase(unittest.TestCase):
                 empty_tests.append(name)
         for name in empty_tests:
             delattr(self, name)
+        #
+        regex = getattr(self, 'assertRaisesRegex', None)
+        if regex is None:
+            self.assertRaisesRegex = getattr(self, 'assertRaisesRegexp')
         super(TestCase, self).__init__(*args, **kwds)
 
 
@@ -287,16 +291,16 @@ class TestPathBasics(TestCase):
 
     def test_path(self):
         "check file paths"
-        enum = 0
+        i = 0
         for actual, expected, vol, dirs, filename, base, ext in self.test_paths:
             p = Path(actual)
-            self.assertEqual(p, expected, "failed on iter %d --> %r != %r" % (enum, p, expected))
-            self.assertEqual(p.vol, vol, "failed on iter %d --> %r != %r" % (enum, p.vol, vol))
-            self.assertEqual(p.dirs, dirs, "failed on iter %d --> %r != %r" % (enum, p.dirs, dirs))
-            self.assertEqual(p.filename, filename, "failed on iter %d --> %r != %r" % (enum, p.filename, filename))
-            self.assertEqual(p.base, base, "failed on iter %d --> %r != %r" % (enum, p.base, base))
-            self.assertEqual(p.ext,  ext, "failed on iter %d --> %r != %r" % (enum, p.ext, ext))
-            enum += 1
+            self.assertEqual(p, expected, "failed on iter %d --> %r != %r" % (i, p, expected))
+            self.assertEqual(p.vol, vol, "failed on iter %d --> %r != %r" % (i, p.vol, vol))
+            self.assertEqual(p.dirs, dirs, "failed on iter %d --> %r != %r" % (i, p.dirs, dirs))
+            self.assertEqual(p.filename, filename, "failed on iter %d --> %r != %r" % (i, p.filename, filename))
+            self.assertEqual(p.base, base, "failed on iter %d --> %r != %r" % (i, p.base, base))
+            self.assertEqual(p.ext,  ext, "failed on iter %d --> %r != %r" % (i, p.ext, ext))
+            i += 1
 
     if os.path.__name__ == 'ntpath':
         def test_win_path(self):
@@ -337,8 +341,8 @@ class TestPathBasics(TestCase):
     def test_addition(self):
         "check path addition"
         self.assertEqual(Path('c:') + Path('/temp/'), Path('c:/temp/'))
-        self.assertEqual(Path('c:/') + Path('temp/'), Path('c:/temp/'))
-        self.assertEqual(Path('c:/temp/') + Path('backups/'), Path('c:/temp/backups/'))
+        self.assertEqual(Path('c:/') + Path('temp/'), Path('c:temp/'))
+        self.assertEqual(Path('c:/temp/') + Path('backups/'), Path('c:/tempbackups/'))
         self.assertEqual(Path('/usr/local/bin') + Path(''), Path('/usr/local/bin'))
 
     def test_multiplication(self):
@@ -441,17 +445,56 @@ class TestPathBasics(TestCase):
 
     def test_division(self):
         "check path division"
-        self.assertEqual(Path('c:') / Path('/temp/'), Path('c:/temp/'))
-        self.assertEqual(Path('c:/') / Path('/temp/'), Path('c:/temp/'))
-        self.assertEqual(Path('c:/temp/') / Path('backups/'), Path('c:/temp/backups/'))
-        self.assertEqual(Path('c:/temp/') / Path('/backups/'), Path('c:/temp/backups/'))
-        self.assertEqual(Path('c:/temp/') / Path('source'), Path('c:/temp/source'))
-        self.assertEqual(Path('c:/temp/source') / Path('destination'), Path('c:/temp/source/destination'))
-        self.assertEqual(Path('c:/temp/destination') / Path('.txt'), Path('c:/temp/destination/.txt'))
-        self.assertEqual(Path('c:/temp/destination.txt') / Path('copy_one'), Path('c:/temp/destination.txt/copy_one'))
-        self.assertEqual(Path('hello') / Path('/temp/'), Path('hello/temp/'))
-        self.assertEqual(Path('') / Path('/temp/'), Path('/temp/'))
-        self.assertEqual(Path('temp') / Path(''), Path('temp/'))
+        tests = (
+                ('c:', '/temp/', 'c:/temp', 'c:/temp', '', ''),
+                ('c:/', '/temp/', 'c:/temp', 'c:/temp', '', ''),
+                ('c:', 'temp', 'c:/temp', 'c:', 'temp', ''),
+                ('c:', 'temp/', 'c:/temp', 'c:/temp', '', ''),
+                ('/var/log', 'backups', '/var/log/backups', '/var/log', 'backups', ''),
+                ('/tmp', 'source/', '/tmp/source', '/tmp/source', '', ''),
+                ('tmp/destination', '.txt', 'tmp/destination/.txt', 'tmp/destination', '', '.txt'),
+                ('/tmp/dest.txt', 'copy_one', '/tmp/dest.txt/copy_one', '/tmp/dest.txt', 'copy_one', ''),
+                )
+        #
+        for i, (first, second, complete, dir_name, base_name, ext) in enumerate(tests):
+            if isinstance(first, unicode):
+                u_first = first
+                u_second = second
+                u_complete = complete
+                u_dir_name = dir_name
+                u_base_name = base_name
+                u_ext = ext
+                b_first = first.encode('utf-8')
+                b_second = second.encode('utf-8')
+                b_complete = complete.encode('utf-8')
+                b_dir_name = dir_name.encode('utf-8')
+                b_base_name = base_name.encode('utf-8')
+                b_ext = ext.encode('utf-8')
+            else:
+                b_first = first
+                b_second = second
+                b_complete = complete
+                b_dir_name = dir_name
+                b_base_name = base_name
+                b_ext = ext
+                u_first = first.decode('utf-8')
+                u_second = second.decode('utf-8')
+                u_complete = complete.decode('utf-8')
+                u_dir_name = dir_name.decode('utf-8')
+                u_base_name = base_name.decode('utf-8')
+                u_ext = ext.decode('utf-8')
+            #
+            u_huh = Path(u_first) / u_second
+            self.assertEqual(u_huh, u_complete, i)
+            self.assertEqual(u_huh._dirname, u_dir_name, i)
+            self.assertEqual(u_huh._base, u_base_name, i)
+            self.assertEqual(u_huh._ext, u_ext, i)
+            #
+            b_huh = b_first / Path(b_second)
+            self.assertEqual(b_huh, b_complete, i)
+            self.assertEqual(b_huh._dirname, b_dir_name, i)
+            self.assertEqual(b_huh._base, b_base_name, i)
+            self.assertEqual(b_huh._ext, b_ext, i)
 
     def test_subtraction(self):
         "check path subtraction"
@@ -1238,7 +1281,7 @@ class TestOspath(TestCase):
             self.assertEqual('/home/ethan/source', ospath(Blah('/home/ethan/source')))
 
 
-class TestPathAsUrl(TestCase):
+class TestPathAsUrl():
 
     def test_addition(self):
         url = Path('https://openerp.sunridgefarms.com/Plone/LabelDirectory/000455/000455MK.bmp')
@@ -1497,61 +1540,141 @@ class TestPathAsUrl(TestCase):
         self.assertEqual(huh.dirs, '/Plone/LabelDirectory/000455')
 
 
-# class TestOsPathCompatibility(TestCase):
-#
-#     def test_basename(self):
-#         raise NotImplementedError()
-#
-#     def test_commonpath(self):
-#         raise NotImplementedError()
-#
-#     def test_commonprefix(self):
-#         raise NotImplementedError()
-#
-#     def test_dirname(self):
-#         raise NotImplementedError()
-#
-#     def test_exists(self):
-#         raise NotImplementedError()
-#
-#     def test_lexists(self):
-#         raise NotImplementedError()
-#
-#     def test_expanduser(self):
-#         raise NotImplementedError()
-#
-#     def test_expandvars(self):
-#         raise NotImplementedError()
-#
-#     def test_getsize(self):
-#         raise NotImplementedError()
-#
-#     def test_isabs(self):
-#         raise NotImplementedError()
-#
-#     def test_isfile(self):
-#         raise NotImplementedError()
-#
-#     def test_isdir(self):
-#         raise NotImplementedError()
-#
-#     def test_islink(self):
-#         raise NotImplementedError()
-#
-#     def test_ismount(self):
-#         raise NotImplementedError()
-#
-#     def test_split(self):
-#         raise NotImplementedError()
-#
-#     def test_splitdrive(self):
-#         raise NotImplementedError()
-#
-#     def test_splitext(self):
-#         raise NotImplementedError()
-#
-#     def test_abspath(self):
-#         raise NotImplementedError()
+class TestOsPathCompatibility(TestCase):
+
+    def setUp(self):
+        self.strings = (
+                '/home/ethan',
+                '/home/ethan/',
+                '/home/ethan/.bashrc',
+                '/home/ethan/README',
+                '/home/ethan/README.txt',
+                '/home/ethan/README.html',
+                '/home/ethan/CHANGES.md',
+                'ethan/tests/test.py',
+                )
+
+    def test_basename(self):
+        for string in self.strings:
+            self.assertEqual(
+                    os.path.basename(string),
+                    Path(string).basename,
+                    )
+
+    def test_commonpath(self):
+        good_paths = (
+                (['/home/ethan/test1/blah', '/home/ethan/test1/hrawr'], '/home/ethan/test1'),
+                ('/home/ethan/test1', '/home/ethan/test2', '/home/ethan'),
+                ('home/ethan/blah/huh', 'home/ethan', 'home/ethan'),
+                ('usr', 'usr', 'usr'),
+                ('lib', 'lib', ),
+                ('', ),
+                )
+        for paths in good_paths:
+            target = paths[-1]
+            source = paths[:-1]
+            self.assertEqual(Path.commonpath(*source), target)
+        #
+        with self.assertRaisesRegex(ValueError, 'paths should be a single list or a sequence of paths'):
+            Path.commonpath(['one','two'], 'three')
+        with self.assertRaisesRegex(ValueError, 'all paths must be either relative or absolute'):
+            Path.commonpath('/one', 'two', 'three')
+
+
+    def test_commonprefix(self):
+        for str1, str2 in zip(self.strings[:-1], self.strings[1:]):
+            stdlib = os.path.commonprefix([str1, str2])
+            path1 = Path.commonprefix(str1, str2)
+            path2 = Path(str1).commonprefix(str2)
+            self.assertEqual(
+                    stdlib,
+                    path1,
+                    "[%r] %r != %r" % ((str1, str2), stdlib, path1),
+                    )
+            self.assertEqual(
+                    stdlib,
+                    path2,
+                    "[%r] %r != %r" % ((str1, str2), stdlib, path2),
+                    )
+
+    def test_dirname(self):
+        for string in self.strings:
+            stdlib = os.path.dirname(string)
+            path1 = Path(string).dirname
+            self.assertEqual(
+                    stdlib,
+                    path1,
+                    "%r" % (string, )
+                    # "[%r] %r != %r" % (string, stdlib, path1)
+                    )
+
+    def test_exists(self):
+        for string in self.strings:
+            self.assertEqual(
+                    os.path.exists(string),
+                    Path(string).exists(),
+                    )
+
+    # def test_lexists(self):
+    #     raise NotImplementedError()
+    #
+    # def test_expanduser(self):
+    #     raise NotImplementedError()
+    #
+    # def test_expandvars(self):
+    #     raise NotImplementedError()
+    #
+    # def test_getsize(self):
+    #     raise NotImplementedError()
+
+    def test_isabs(self):
+        for string in self.strings:
+            self.assertEqual(
+                    os.path.isabs(string),
+                    Path(string).isabs(),
+                    )
+
+    def test_relpath(self):
+        self.assertEqual(
+                Path.relpath('/home/ethan/test', '/home/ethan/lib/'),
+                '../test',
+                )
+        self.assertEqual(
+                Path('/home/ethan/test').relpath('/usr/local/lib'),
+                '../../../home/ethan/test',
+                )
+        self.assertEqual(
+                Path('/home/ethan/lib').relpath('/home'),
+                'ethan/lib',
+                )
+
+    # def test_isfile(self):
+    #     for string in self.strings:
+    #         self.assertEqual(
+    #                 os.path.isabs(string),
+    #                 Path(string).isfile(),
+    #                 )
+    #
+    # def test_isdir(self):
+    #     raise NotImplementedError()
+    #
+    # def test_islink(self):
+    #     raise NotImplementedError()
+    #
+    # def test_ismount(self):
+    #     raise NotImplementedError()
+    #
+    # def test_split(self):
+    #     raise NotImplementedError()
+    #
+    # def test_splitdrive(self):
+    #     raise NotImplementedError()
+    #
+    # def test_splitext(self):
+    #     raise NotImplementedError()
+    #
+    # def test_abspath(self):
+    #     raise NotImplementedError()
 
 
 if __name__ == '__main__':
