@@ -1,4 +1,4 @@
-version = 0, 84, 1, 13
+version = 0, 84, 1
 
 from .path import *
 from . import path as _path
