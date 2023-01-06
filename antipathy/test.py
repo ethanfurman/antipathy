@@ -73,6 +73,14 @@ class TestPathBasics(TestCase):
             '.', '', '.', '', '', ''),
         ("..",
             '..', '', '..', '', '', ''),
+        ("./",
+            './', '', './', '', '', ''),
+        ("../",
+            '../', '', '../', '', '', ''),
+        ("./huh",
+            './huh', '', './', 'huh', 'huh', ''),
+        ("../huh",
+            '../huh', '', '../', 'huh', 'huh', ''),
         )
 
     test_posix_paths = (
@@ -138,7 +146,6 @@ class TestPathBasics(TestCase):
             'temp\\place\\', '', '', 'temp\\place\\', 'temp\\place\\', ''),
         ("temp\\.xyz",
             'temp\\.xyz', '', '', 'temp\\.xyz', 'temp\\', '.xyz'),
-
         ("c:/temp/place/somefile.abc.xyz",
             'c:/temp/place/somefile.abc.xyz', '', 'c:/temp/place', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
         ("c:/temp/place/somefile.abc.",
@@ -172,6 +179,7 @@ class TestPathBasics(TestCase):
         ("c:temp/.xyz",
             'c:temp/.xyz', '', 'c:temp', '.xyz', '', '.xyz'),
         )
+
     test_win_paths = (
         ("c:\\temp\\place\\somefile.abc.xyz",
             'c:/temp/place/somefile.abc.xyz', 'c:', '/temp/place', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
@@ -294,12 +302,20 @@ class TestPathBasics(TestCase):
         i = 0
         for actual, expected, vol, dirs, filename, base, ext in self.test_paths:
             p = Path(actual)
-            self.assertEqual(p, expected, "failed on iter %d --> %r != %r" % (i, p, expected))
-            self.assertEqual(p.vol, vol, "failed on iter %d --> %r != %r" % (i, p.vol, vol))
-            self.assertEqual(p.dirs, dirs, "failed on iter %d --> %r != %r" % (i, p.dirs, dirs))
-            self.assertEqual(p.filename, filename, "failed on iter %d --> %r != %r" % (i, p.filename, filename))
-            self.assertEqual(p.base, base, "failed on iter %d --> %r != %r" % (i, p.base, base))
-            self.assertEqual(p.ext,  ext, "failed on iter %d --> %r != %r" % (i, p.ext, ext))
+            self.assertEqual(p, expected, "failed on iter %d --> %r: %r != %r" % (i, actual, p, expected))
+            self.assertEqual(p.vol, vol, "failed on iter %d --> %r: %r != %r" % (i, actual, p.vol, vol))
+            self.assertEqual(p.dirs, dirs, "failed on iter %d --> %r: %r != %r" % (i, actual, p.dirs, dirs))
+            self.assertEqual(p.filename, filename, "failed on iter %d --> %r: %r != %r" % (i, actual, p.filename, filename))
+            self.assertEqual(p.base, base, "failed on iter %d --> %r: %r != %r" % (i, actual, p.base, base))
+            self.assertEqual(p.ext,  ext, "failed on iter %d --> %r: %r != %r" % (i, actual, p.ext, ext))
+            if actual == '/':
+                r = "Path('%s')" % actual
+                s = actual
+            else:
+                r = "Path('%s')" % actual.rstrip('/')
+                s = actual.rstrip('/')
+            self.assertEqual(repr(p), r, "failed on iter %d --> %r: %r != %r" % (i, actual, r, repr(p)))
+            self.assertEqual(str(p), s, "failed on iter %d --> %r: %r != %r" % (i, actual, s, str(p)))
             i += 1
 
     if os.path.__name__ == 'ntpath':
@@ -1561,7 +1577,7 @@ class TestOsPathCompatibility(TestCase):
                     Path(string).basename,
                     )
 
-    def test_commonpath(self):
+    def test_commonpath_manual(self):
         good_paths = (
                 (['/home/ethan/test1/blah', '/home/ethan/test1/hrawr'], '/home/ethan/test1'),
                 ('/home/ethan/test1', '/home/ethan/test2', '/home/ethan'),
@@ -1580,6 +1596,26 @@ class TestOsPathCompatibility(TestCase):
         with self.assertRaisesRegex(ValueError, 'all paths must be either relative or absolute'):
             Path.commonpath('/one', 'two', 'three')
 
+    @unittest.skipUnless(
+            getattr(os.path, 'commonpath', False),
+            "unable to use os.path.commonmpath",
+            )
+    def test_commonpath_stdlib(self):
+        good_paths = (
+                (['/home/ethan/test1/blah', '/home/ethan/test1/hrawr'], '/home/ethan/test1'),
+                ('/home/ethan/test1', '/home/ethan/test2', '/home/ethan'),
+                ('home/ethan/blah/huh', 'home/ethan', 'home/ethan'),
+                ('usr', 'usr', 'usr'),
+                ('lib', 'lib', ),
+                )
+        for paths in good_paths:
+            target = paths[-1]
+            source = paths[:-1]
+            if source and isinstance(source[0], list):
+                source = source[0]
+            stdlib = os.path.commonpath(source)
+            self.assertEqual(stdlib, target)
+            self.assertEqual(Path.commonpath(*source), target)
 
     def test_commonprefix(self):
         for str1, str2 in zip(self.strings[:-1], self.strings[1:]):
@@ -1637,15 +1673,15 @@ class TestOsPathCompatibility(TestCase):
     def test_relpath(self):
         self.assertEqual(
                 Path.relpath('/home/ethan/test', '/home/ethan/lib/'),
-                '../test',
+                os.path.relpath('/home/ethan/test', '/home/ethan/lib/'),
                 )
         self.assertEqual(
                 Path('/home/ethan/test').relpath('/usr/local/lib'),
-                '../../../home/ethan/test',
+                os.path.relpath('/home/ethan/test', '/usr/local/lib/'),
                 )
         self.assertEqual(
                 Path('/home/ethan/lib').relpath('/home'),
-                'ethan/lib',
+                os.path.relpath('/home/ethan/lib', '/home'),
                 )
 
     # def test_isfile(self):

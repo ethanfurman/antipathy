@@ -1,7 +1,7 @@
-version = 0, 84, 1, 1
+version = 0, 84, 1, 13
 
 from .path import *
-import antipathy.path as _path
+from . import path as _path
 
 __all__ = _path.__all__
 
