@@ -1,3 +1,10 @@
+0.84.1
+======
+
+fix str() and repr() for single dir paths
+declare support for Pythons 3.10 and 3.11
+
+
 0.84.00
 =======
 
