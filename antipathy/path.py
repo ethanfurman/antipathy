@@ -115,25 +115,19 @@ class Path(object):
     if _py_ver >= (2, 6) and not _is_win:
         @classmethod
         def chflags(cls, flags, files):
-            if isinstance(files, cls.base_types):
-                files = Path.glob(files)
-            for file in files:
+            for file in cls._ensure(files):
                 Path(file).chflags(flags)
 
     @classmethod
     def chmod(cls, mode, files):
         "thin wrapper around os.chmod"
-        if isinstance(files, cls.base_types):
-            files = Path.glob(files)
-        for file in files:
+        for file in cls._ensure(files):
             Path(file).chmod(mode)
 
     @classmethod
     def chown(cls, uid, gid, files):
         "thin wrapper around os.chown"
-        if isinstance(files, cls.base_types):
-            files = Path.glob(files)
-        for file in files:
+        for file in cls._ensure(files):
             Path(file).chown(uid, gid)
 
     if not _is_win:
@@ -177,9 +171,9 @@ class Path(object):
         """
         thin wrapper around shutil.copy2  (files is optional)
         """
-        if isinstance(files, cls.base_types):
-            files = Path.glob(files)
-        for file in files:
+        if not dst:
+            raise ValueError('invalid dst: <%s>' % (dst, ))
+        for file in cls._ensure(files):
             Path(file).copy(dst)
 
     @staticmethod
@@ -240,27 +234,21 @@ class Path(object):
 
         @classmethod
         def lchmod(cls, mode, files):
-            if isinstance(files, cls.base_types):
-                files = Path.glob(files)
-            for file in files:
+            for file in cls._ensure(files):
                 Path(file).lchmod(mode)
 
     if hasattr(_os, 'lchflags'):
 
         @classmethod
         def lchflags(cls, files, flags):
-            if isinstance(files, cls.base_types):
-                files = Path.glob(files)
-            for file in files:
+            for file in cls._ensure(files):
                 Path(file).lchflags(flags)
 
     if hasattr(_os, 'lchown'):
 
         @classmethod
         def lchown(cls, files, uid, gid):
-            if isinstance(files, cls.base_types):
-                files = Path.glob(files)
-            for file in files:
+            for file in cls._ensure(files):
                 Path(file).lchown(uid, gid)
 
     if hasattr(_os.path, 'lexists'):
@@ -296,9 +284,9 @@ class Path(object):
     @classmethod
     def move(cls, sources, dst):
         dst = Path(dst)
-        if isinstance(sources, cls.base_types):
-            sources = Path.glob(sources)
-        for source in sources:
+        if not dst:
+            raise ValueError('invalid dst: <%s>' % (dst, ))
+        for source in cls._ensure(sources):
             Path(source).move(dst)
         return dst
 
@@ -337,9 +325,7 @@ class Path(object):
 
     @classmethod
     def removedirs(cls, subdirs):
-        if isinstance(subdirs, cls.base_types):
-            subdirs = Path.glob(subdirs)
-        for subdir in subdirs:
+        for subdir in cls._ensure(subdirs):
             Path(subdir).removedirs()
 
     @staticmethod
@@ -352,16 +338,12 @@ class Path(object):
 
     @classmethod
     def rmdir(cls, subdirs):
-        if isinstance(subdirs, cls.base_types):
-            subdirs = Path.glob(subdirs)
-        for subdir in subdirs:
+        for subdir in cls._ensure(subdirs):
             Path(subdir).rmdir()
 
     @classmethod
     def rmtree(cls, subdirs, ignore_errors=None, onerror=None):
-        if isinstance(subdirs, cls.base_types):
-            subdirs = Path.glob(subdirs)
-        for subdir in subdirs:
+        for subdir in cls._ensure(subdirs):
             Path(subdir).rmtree(ignore_errors=ignore_errors, onerror=onerror)
 
     @staticmethod
@@ -384,24 +366,17 @@ class Path(object):
 
     @classmethod
     def touch(cls, names, times=None, no_create=False, reference=None):
-        if isinstance(names, cls.base_types):
-            names = Path.glob(names) or [names]
-        for name in names:
+        for name in cls._ensure(names, no_glob_okay=True):
             Path(name).touch(None, times, no_create, reference)
-
 
     @classmethod
     def unlink(cls, names):
-        if isinstance(names, cls.base_types):
-            names = Path.glob(names)
-        for name in names:
+        for name in cls._ensure(names):
             Path(name).unlink()
 
     @classmethod
     def utime(cls, names, times):
-        if isinstance(names, cls.base_types):
-            names = Path.glob(names)
-        for name in names:
+        for name in cls._ensure(names):
             Path(name).utime(times)
 
     if _py_ver >= (2, 6):
@@ -423,7 +398,21 @@ class Path(object):
                 dirnames[:] = [p(dn) for dn in dirnames]
                 filenames[:] = [p(fn) for fn in filenames]
                 yield dirpath, dirnames, filenames
+
+    @classmethod
+    def _ensure(cls, entries, no_glob_okay=False):
+        if not entries:
+            raise OSError(2, "No such file or directory: '%s'" % (entries, ))
+        o_entries = entries
+        if isinstance(entries, cls.base_types):
+            entries = Path.glob(entries)
+        if not entries and no_glob_okay:
+            entries = o_entries
+        if not entries:
+            raise OSError(2, "No such file or directory: '%s'" % (o_entries, ))
+        return entries
 Path.base_types = bytes, str, unicode
+
 
 class Methods(object):
 
