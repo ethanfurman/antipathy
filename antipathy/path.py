@@ -418,11 +418,13 @@ class Methods(object):
 
     def __new__(cls, *paths):
         slash = cls._SLASH
+        as_is_value = False
         if not paths:
             paths = (cls._EMPTY, )
         elif len(paths) == 1:
             if isinstance(paths[0], Path):
                 paths = (paths[0]._value_, )
+            as_is_value = paths[0]
         elif len(paths) > 1:
             # convert sys_sep to '/' (no-op unless on windows)
             paths = tuple([
@@ -482,9 +484,9 @@ class Methods(object):
                 else:
                     base = filename
         df_sep = cls._EMPTY
-        if dirs and dirs != slash and filename:
+        if dirs and dirs != slash:
             df_sep = slash
-        value = vol + dirs + df_sep + filename
+        value = as_is_value or (vol + dirs + df_sep + filename)
         p = cls.data_type.__new__(cls, value)
         p._value_ = value
         p._vol = vol
@@ -578,12 +580,10 @@ class Methods(object):
         if other._vol:
             if self:
                 raise ValueError("Cannot combine %r and %r" % (self, other))
-        t_slash = len(other._dirname) > 1 and not other._filename and self._SLASH or self._EMPTY
         return self.__class__(
                 self._value_.rstrip(self._SLASH) +
                 self._SLASH +
-                other._value_.lstrip(self._SLASH) +
-                t_slash
+                other._value_.lstrip(self._SLASH)
                 )
     __truediv__ = __div__
 
@@ -661,10 +661,7 @@ class Methods(object):
             return NotImplemented
         elif isinstance(other, self.data_types):
             other = Path(other)
-        if self._dirs and not self._filename:
-            return other / self / self._EMPTY
-        else:
-            return other / self
+        return other / self
     __rtruediv__ = __rdiv__
 
     def __repr__(self):
@@ -696,11 +693,7 @@ class Methods(object):
         elif isinstance(other, self.data_types):
             other = Path(other)
         s = self._value_
-        if len(self._dirs) > 1 and not self._filename:
-            s += self._SLASH
         o = other._value_
-        if len(other._dirs) > 1 and not other._filename:
-            o += other._SLASH
         if not s.startswith(o):
             raise ValueError("cannot subtract %r from %r" % (other, self))
         return Path(s[len(o):])

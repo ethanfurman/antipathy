@@ -74,13 +74,13 @@ class TestPathBasics(TestCase):
         ("..",
             '..', '', '..', '', '', ''),
         ("./",
-            './', '', './', '', '', ''),
+            './', '', '.', '', '', ''),
         ("../",
-            '../', '', '../', '', '', ''),
+            '../', '', '..', '', '', ''),
         ("./huh",
-            './huh', '', './', 'huh', 'huh', ''),
+            './huh', '', '.', 'huh', 'huh', ''),
         ("../huh",
-            '../huh', '', '../', 'huh', 'huh', ''),
+            '../huh', '', '..', 'huh', 'huh', ''),
         )
 
     test_posix_paths = (
@@ -308,12 +308,8 @@ class TestPathBasics(TestCase):
             self.assertEqual(p.filename, filename, "failed on iter %d --> %r: %r != %r" % (i, actual, p.filename, filename))
             self.assertEqual(p.base, base, "failed on iter %d --> %r: %r != %r" % (i, actual, p.base, base))
             self.assertEqual(p.ext,  ext, "failed on iter %d --> %r: %r != %r" % (i, actual, p.ext, ext))
-            if actual == '/':
-                r = "Path('%s')" % actual
-                s = actual
-            else:
-                r = "Path('%s')" % actual.rstrip('/')
-                s = actual.rstrip('/')
+            r = "Path('%s')" % actual
+            s = actual
             self.assertEqual(repr(p), r, "failed on iter %d --> %r: %r != %r" % (i, actual, r, repr(p)))
             self.assertEqual(str(p), s, "failed on iter %d --> %r: %r != %r" % (i, actual, s, str(p)))
             i += 1
@@ -357,9 +353,13 @@ class TestPathBasics(TestCase):
     def test_addition(self):
         "check path addition"
         self.assertEqual(Path('c:') + Path('/temp/'), Path('c:/temp/'))
-        self.assertEqual(Path('c:/') + Path('temp/'), Path('c:temp/'))
-        self.assertEqual(Path('c:/temp/') + Path('backups/'), Path('c:/tempbackups/'))
+        self.assertEqual(str(Path('c:')+Path('/temp/')), 'c:/temp/')
+        self.assertEqual(Path('c:/') + Path('temp/'), Path('c:/temp/'))
+        self.assertEqual(str(Path('c:/')+Path('temp/')), 'c:/temp/')
+        self.assertEqual(Path('c:/temp/') + Path('backups/'), Path('c:/temp/backups/'))
+        self.assertEqual(str(Path('c:/temp/')+Path('backups/')), 'c:/temp/backups/')
         self.assertEqual(Path('/usr/local/bin') + Path(''), Path('/usr/local/bin'))
+        self.assertEqual(Path('/usr/local/bin')+Path(''), '/usr/local/bin')
 
     def test_multiplication(self):
         "check path fusing"
@@ -462,12 +462,12 @@ class TestPathBasics(TestCase):
     def test_division(self):
         "check path division"
         tests = (
-                ('c:', '/temp/', 'c:/temp', 'c:/temp', '', ''),
-                ('c:/', '/temp/', 'c:/temp', 'c:/temp', '', ''),
+                ('c:', '/temp/', 'c:/temp/', 'c:/temp', '', ''),
+                ('c:/', '/temp/', 'c:/temp/', 'c:/temp', '', ''),
                 ('c:', 'temp', 'c:/temp', 'c:', 'temp', ''),
-                ('c:', 'temp/', 'c:/temp', 'c:/temp', '', ''),
+                ('c:', 'temp/', 'c:/temp/', 'c:/temp', '', ''),
                 ('/var/log', 'backups', '/var/log/backups', '/var/log', 'backups', ''),
-                ('/tmp', 'source/', '/tmp/source', '/tmp/source', '', ''),
+                ('/tmp', 'source/', '/tmp/source/', '/tmp/source', '', ''),
                 ('tmp/destination', '.txt', 'tmp/destination/.txt', 'tmp/destination', '', '.txt'),
                 ('/tmp/dest.txt', 'copy_one', '/tmp/dest.txt/copy_one', '/tmp/dest.txt', 'copy_one', ''),
                 )

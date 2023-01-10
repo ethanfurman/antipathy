@@ -50,7 +50,7 @@ make = []
 
 data = dict(
        name='antipathy',
-       version='0.84.2',
+       version='0.85.0',
        license='BSD License',
        description='oo view of file paths and names, subclassed from bytes/str/unicode',
        long_description=long_desc,
