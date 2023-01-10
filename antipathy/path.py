@@ -864,14 +864,43 @@ class Methods(object):
         def copytree(self, dst, symlinks=False):
             'thin wrapper around shutil.copytree'
             src, dst = base_class(self, dst)
-            _shutil.copytree(src, dst, symlinks)
+            return _shutil.copytree(src, dst, symlinks) or dst
 
-    else:
+    elif _py_ver < (3, 2):
 
         def copytree(self, dst, symlinks=False, ignore=None):
             'thin wrapper around shutil.copytree'
             src, dst = base_class(self, dst)
-            _shutil.copytree(src, dst, symlinks, ignore)
+            return _shutil.copytree(src, dst, symlinks, ignore) or dst
+
+    elif _py_ver < (3, 8):
+
+        def copytree(self, dst, symlinks=False, ignore=None, copy_function=None, ignore_dangling_symlinks=False):
+            'thin wrapper around shutil.copytree'
+            src, dst = base_class(self, dst)
+            kwds = {
+                    'symlinks': symlinks,
+                    'ignore': ignore,
+                    'ignore_dangling_symlinks': ignore_dangling_symlinks,
+                    }
+            if copy_function:
+                kwds['copy_function'] = copy_function
+            return _shutil.copytree(src, dst, **kwds) or dst
+
+    else:
+
+        def copytree(self, dst, symlinks=False, ignore=None, copy_function=None, ignore_dangling_symlinks=False, dirs_exist_ok=False):
+            'thin wrapper around shutil.copytree'
+            src, dst = base_class(self, dst)
+            kwds = {
+                    'symlinks': symlinks,
+                    'ignore': ignore,
+                    'ignore_dangling_symlinks': ignore_dangling_symlinks,
+                    'dirs_exist_ok': dirs_exist_ok,
+                    }
+            if copy_function:
+                kwds['copy_function'] = copy_function
+            return _shutil.copytree(src, dst, **kwds) or dst
 
     def count(self, sub, start=None, end=None):
         new_sub = sub.replace(self._SYS_SEP, self._SLASH)
@@ -1152,8 +1181,11 @@ class Methods(object):
         dst = self.data_type(dst)
         for file in files:
             src = self.data_type(file)
-            _shutil.move(src, dst)
-        return dst
+            real_dst = dst
+            if _os.path.exists(real_dst) and _os.path.isdir(real_dst):
+                real_dst += self._SLASH + _os.path.basename(src.rstrip(self._SLASH))
+            _shutil.move(src, real_dst)
+        return real_dst
 
     def open(self, file_name=None, mode=None, buffering=None, encoding=None):
         """
