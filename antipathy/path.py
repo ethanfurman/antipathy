@@ -1158,8 +1158,9 @@ class Methods(object):
         else:
             subdirs = [d for ds in subdirs for d in self.glob(ds)]
         for subdir in subdirs:
-            # path = subdir.vol
-            path = Path()
+            path = Path('.')
+            if subdir.isabs():
+                path = Path()
             elements = subdir.elements
             for i, dir in enumerate(elements, start=4):
                 path /= dir
@@ -1415,7 +1416,7 @@ class Methods(object):
                     pass
                 else:
                     file = self.data_type(file)
-                    with open(file, 'w') as fh:
+                    with open(file, 'w'):
                         pass
                     if times is not None:
                         _os.utime(file, times)

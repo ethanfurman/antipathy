@@ -1076,6 +1076,11 @@ class TestPathFileOperations(TestCase):
         self.assertTrue(os.path.exists(os.path.join(tempdir, 'test_3')))
         Path(os.path.join(tempdir, 'test_3')).makedirs(os.path.join('psyche_3', 'mirage_3'))
         self.assertTrue(os.path.exists(os.path.join(tempdir, 'test_3')))
+        current = os.getcwd()
+        os.chdir(tempdir)
+        Path.makedirs('test_4')
+        self.assertTrue(Path('test_4').exists())
+        os.chdir(current)
 
     def test_move(self):
         Path.move(self.sh_file, os.path.join(tempdir, 'non-sh'))
