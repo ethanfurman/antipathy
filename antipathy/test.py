@@ -29,7 +29,7 @@ class TestCase(unittest.TestCase):
 
 
 class TestPathBasics(TestCase):
-
+    # expected, vol, dirs, filename, base, ext
     test_paths = (
         ("/temp/place/somefile.abc.xyz",
             '/temp/place/somefile.abc.xyz', '', '/temp/place', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
@@ -83,6 +83,7 @@ class TestPathBasics(TestCase):
             '../huh', '', '..', 'huh', 'huh', ''),
         )
 
+    # expected, vol, dirs, filename, base, ext
     test_posix_paths = (
         ("c:\\temp\\place\\somefile.abc.xyz",
             'c:\\temp\\place\\somefile.abc.xyz', '', '', 'c:\\temp\\place\\somefile.abc.xyz', 'c:\\temp\\place\\somefile.abc', '.xyz'),
@@ -180,6 +181,7 @@ class TestPathBasics(TestCase):
             'c:temp/.xyz', '', 'c:temp', '.xyz', '', '.xyz'),
         )
 
+    # expected, vol, dirs, filename, base, ext
     test_win_paths = (
         ("c:\\temp\\place\\somefile.abc.xyz",
             'c:/temp/place/somefile.abc.xyz', 'c:', '/temp/place', 'somefile.abc.xyz', 'somefile.abc', '.xyz'),
@@ -517,26 +519,29 @@ class TestPathBasics(TestCase):
         self.assertEqual(Path('/temp') - Path('/temp'), Path(''))
         self.assertEqual(Path('/temp/backups') - Path(''), Path('/temp/backups'))
         self.assertEqual(Path('/temp/backups') - Path('/'), Path('temp/backups'))
-        self.assertEqual(Path('/temp/backups') - Path('/temp'), Path('/backups'))
+        self.assertEqual(Path('/temp/backups') - Path('/temp'), Path('backups'))
         self.assertEqual(Path('/temp/backups') - Path('/temp/'), Path('backups'))
         self.assertEqual(Path('/temp/backups') - Path('/temp/backups'), Path(''))
         self.assertEqual(Path('/temp/destination.txt') - Path(''), Path('/temp/destination.txt'))
-        self.assertEqual(Path('/temp/destination.txt') - Path('/temp'), Path('/destination.txt'))
+        self.assertEqual(Path('/temp/destination.txt') - Path('/temp'), Path('destination.txt'))
         self.assertEqual(Path('/temp/destination.txt') - Path('/temp/'), Path('destination.txt'))
         self.assertEqual(Path('/temp/destination.txt') - Path('/temp/destination'), Path('.txt'))
+        self.assertEqual(Path('//machine/share/some/path/and/file.txt') - Path('//machine/share'), Path('some/path/and/file.txt'))
+        self.assertEqual(Path('//machine/share/some/path/and/file.txt') - Path('//machine/share/'), Path('some/path/and/file.txt'))
+        self.assertEqual(Path('//machine/share/some/path/and/file.txt') - Path('//machine/share/some/path'), Path('and/file.txt'))
         self.assertEqual(Path('//machine/share/some/path/and/file.txt') - Path('//machine/share/some/path/'), Path('and/file.txt'))
-        self.assertEqual(Path('/usr/local/bin') - Path(''), Path('/usr/local/bin'))
         self.assertEqual(Path('//machine/share/some/path/and/file.txt') - Path(''), Path('//machine/share/some/path/and/file.txt'))
+        self.assertEqual(Path('/usr/local/bin') - Path(''), Path('/usr/local/bin'))
 
     if os.path.__name__ == 'ntpath':
         def test_win_subtraction(self):
             "check path subtraction"
             self.assertEqual(Path('c:/temp') - Path('c:/temp'), Path(''))
-            self.assertEqual(Path('c:/temp') - Path('c:'), Path('/temp'))
+            self.assertEqual(Path('c:/temp') - Path('c:'), Path('temp'))
             self.assertEqual(Path('c:/temp') - Path('c:/'), Path('temp'))
-            self.assertEqual(Path('c:/temp/backups') - Path('c:'), Path('/temp/backups'))
+            self.assertEqual(Path('c:/temp/backups') - Path('c:'), Path('temp/backups'))
             self.assertEqual(Path('c:/temp/backups') - Path('c:/'), Path('temp/backups'))
-            self.assertEqual(Path('c:/temp/backups') - Path('c:/temp'), Path('/backups'))
+            self.assertEqual(Path('c:/temp/backups') - Path('c:/temp'), Path('backups'))
             self.assertEqual(Path('c:/temp/backups') - Path('c:/temp/'), Path('backups'))
             self.assertEqual(Path('c:/temp/backups') - Path('c:/temp/backups'), Path(''))
             self.assertEqual(Path('c:/temp/destination.txt') - Path(''), Path('c:/temp/destination.txt'))

@@ -1,3 +1,22 @@
+0.85.4
+======
+
+strip leading slash after path subtraction, unless subtracting an
+empty string
+
+
+0.85.3
+======
+
+do not start relative paths at root
+
+
+0.85.2
+======
+
+update copytree() for later python versions
+
+
 0.85.0
 ======
 
