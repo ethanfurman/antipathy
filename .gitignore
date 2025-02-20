@@ -1,0 +1,12 @@
+*.bak
+*.old
+*.pyc
+*.pyo
+*.xml
+*.sw?
+~*
+build/
+dist/
+repo_install.log
+repo_test.log
+sp
